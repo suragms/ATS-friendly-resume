@@ -1,73 +1,193 @@
-# Welcome to your Lovable project
+# 📄 Resume Generator – AI-Powered Professional Resume Builder
 
-## Project info
+> **Create stunning, ATS-optimized resumes in minutes with AI-driven suggestions and professional templates.**
 
-**URL**: https://lovable.dev/projects/8ab21ae1-6039-40d1-939a-29f9bca2f877
+![License](https://img.shields.io/badge/license-MIT-green)
+![React](https://img.shields.io/badge/React-18-blue)
+![Node.js](https://img.shields.io/badge/Node.js-Express.js-orange)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🎯 Overview
 
-**Use Lovable**
+**Resume Generator** is a modern **AI-powered web application** that enables users to create professional, ATS-compliant resumes effortlessly. Built with **React 18**, **TypeScript**, **Vite**, and **Express.js**, the platform offers **real-time previews**, **intelligent AI suggestions**, and a library of **industry-specific templates** to meet diverse career needs.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8ab21ae1-6039-40d1-939a-29f9bca2f877) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🏗 Architecture
 
-**Use your preferred IDE**
+### **Frontend**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+* **Framework**: React 18 + TypeScript
+* **Build Tool**: Vite for blazing-fast development
+* **Routing**: React Router DOM
+* **State Management**: Context API
+* **UI Library**: shadcn/ui + Radix UI primitives
+* **Styling**: Tailwind CSS with a custom design system
+* **Forms**: React Hook Form + Zod validation
+* **HTTP Client**: Axios with interceptors
+* **PDF Export**: html2pdf.js
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### **Backend**
 
-Follow these steps:
+* **Runtime**: Node.js + Express.js
+* **Storage**: In-memory (ready for DB integration in production)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🌟 Features
 
-# Step 3: Install the necessary dependencies.
-npm i
+### **1. AI-Powered Resume Assistant**
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+✅ Intelligent content & phrasing suggestions
+✅ Keyword optimization for industry-specific resumes
+✅ Hugging Face API integration for advanced AI capabilities
+
+### **2. Professional Template Library**
+
+🎨 **9 Premium Templates** – ATS Classic, Professional, Minimalist, Executive, Creative, Technical, Academic, Modern, Simple
+📂 Categorized by industry & purpose
+📝 ATS-optimized to pass automated screenings
+
+### **3. Resume Builder**
+
+* Personal Info, Work Experience, Education, Skills, Certifications, Projects, Awards, Publications, Keywords
+* Drag & drop section reordering
+* Enable/disable sections dynamically
+
+### **4. Real-Time Preview**
+
+* Instant updates while editing
+* Template switching without losing content
+* Mobile & desktop preview modes
+
+### **5. Export & Share**
+
+* High-quality PDF export
+* Multiple file formats supported
+* Organized download system with progress indicators
+
+
+---
+
+## 🛠 Tech Stack
+
+**Frontend**
+
+```
+React 18, TypeScript, Vite
+Tailwind CSS, shadcn/ui, Radix UI
+React Hook Form, Zod, Axios, html2pdf.js
+```
+
+**Backend**
+
+```
+Express.js, Node.js
+bcryptjs, jsonwebtoken, cors, dotenv
+```
+
+---
+
+## 📂 Folder Structure
+
+```
+resume_gen/
+├── src/                # Frontend source code
+│   ├── components/     # UI components
+│   ├── pages/          # Page-level components
+│   ├── hooks/          # Custom React hooks
+│   ├── lib/            # API & utilities
+│   └── main.tsx        # Entry point
+├── server/             # Backend API server
+│   ├── server.js
+│   └── package.json
+├── public/             # Static assets
+└── ...
+```
+
+---
+
+## 🎨 Design System
+
+* **Primary Colors**: Blue gradients for main CTAs
+* **Typography**: Clear headings & body hierarchy
+* **Components**: Buttons, Cards, Forms, Navigation, Modals
+
+---
+
+---
+
+## 🚀 Getting Started
+
+**Frontend**
+
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+**Backend**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+cd server
+npm install
+npm run dev
+```
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 📈 Roadmap
 
-## What technologies are used for this project?
+**Short-Term**
 
-This project is built with:
+* PostgreSQL/MongoDB integration
+* Google OAuth
+* Password reset flow
+* Email verification
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+**Mid-Term**
 
-## How can I deploy this project?
+* Resume analytics
+* Cover letter builder
+* LinkedIn data import
+* Collaboration tools
 
-Simply open [Lovable](https://lovable.dev/projects/8ab21ae1-6039-40d1-939a-29f9bca2f877) and click on Share -> Publish.
+**Long-Term**
 
-## Can I connect a custom domain to my Lovable project?
+* AI interview preparation
+* Job matching engine
+* Career coaching tools
+* Portfolio builder
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🎯 Target Users
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+* **Job Seekers** – Creating first-time resumes
+* **Career Changers** – Industry-specific optimization
+* **Students** – Entry-level professional resumes
+* **Professionals** – Updating & upgrading resumes
+
+---
+
+## 📌 Conclusion
+
+The **Resume Generator** blends **AI intelligence** with **modern UI/UX** to deliver a **fast, professional, and ATS-friendly** resume creation experience. Designed for scalability, security, and cross-platform accessibility, it’s a **career growth companion** for every professional.
+
+---
+
+## 📬 Connect with Me
+
+💼 **Portfolio:** [surag.netlify.app](https://surag.netlify.app)
+🔗 **Linktree:** [linktr.ee/suragdevstudio](https://linktr.ee/suragdevstudio)
+💻 **GitHub:** [@suragms](https://github.com/suragms)
+💼 **LinkedIn:** [@suragms](https://linkedin.com/in/suragsunil)
+📸 **Instagram:** [@surag_sunil](https://instagram.com/surag_sunil)
+📧 **Email:** [officialsurag@gmail.com](mailto:officialsurag@gmail.com)
+
+---
+
+If you want, I can **add clickable social badges** for each link so the contact section looks visually attractive and professional for GitHub visitors.
+Do you want me to make that upgrade?
