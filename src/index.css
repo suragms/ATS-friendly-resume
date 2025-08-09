@@ -1,0 +1,238 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Professional Resume Builder Design System */
+
+@layer base {
+  :root {
+    /* Core Colors - Professional Blue Theme */
+    --background: 0 0% 100%;
+    --foreground: 215 28% 17%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 217 91% 70%;
+
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 215 28% 17%;
+
+    --muted: 214 32% 91%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 204 94% 94%;
+    --accent-foreground: 215 28% 17%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    /* Professional Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(var(--background)) 0%, hsl(var(--accent)) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+
+    /* Professional Shadows */
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.1);
+    --shadow-card: 0 4px 20px -4px hsl(var(--foreground) / 0.1);
+    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.2);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Blinking Animation */
+@keyframes blink {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* Resume Template Styles */
+@layer components {
+  /* Executive Template */
+  .resume-preview.executive .header-executive {
+    @apply text-center border-b-2 border-slate-300 pb-6 mb-6;
+  }
+  
+  .resume-preview.executive .header-executive h1 {
+    @apply text-3xl font-bold text-slate-800 mb-2;
+  }
+  
+  .resume-preview.executive .header-executive div {
+    @apply text-slate-600;
+  }
+
+  /* Creative Template */
+  .resume-preview.creative .header-creative {
+    @apply border-l-4 border-purple-500 pl-4 mb-6;
+  }
+  
+  .resume-preview.creative .header-creative h1 {
+    @apply text-2xl font-bold text-purple-800 mb-2;
+  }
+  
+  .resume-preview.creative .experience-creative h2,
+  .resume-preview.creative .education-creative h2,
+  .resume-preview.creative .skills-creative h2 {
+    @apply text-purple-700 border-b border-purple-200 pb-2 mb-4;
+  }
+
+  /* Technical Template */
+  .resume-preview.technical .header-technical {
+    @apply border-b border-blue-200 pb-4 mb-6;
+  }
+  
+  .resume-preview.technical .header-technical h1 {
+    @apply text-2xl font-bold text-blue-800 mb-2;
+  }
+  
+  .resume-preview.technical .experience-technical h2,
+  .resume-preview.technical .education-technical h2,
+  .resume-preview.technical .skills-technical h2 {
+    @apply text-blue-700 font-semibold mb-3;
+  }
+  
+  .resume-preview.technical .experience-technical .space-y-4 > div {
+    @apply border-l-2 border-blue-300 pl-4;
+  }
+
+  /* Academic Template */
+  .resume-preview.academic .header-academic {
+    @apply text-center border-b border-green-300 pb-4 mb-6;
+  }
+  
+  .resume-preview.academic .header-academic h1 {
+    @apply text-2xl font-bold text-green-800 mb-2;
+  }
+  
+  .resume-preview.academic .experience-academic h2,
+  .resume-preview.academic .education-academic h2,
+  .resume-preview.academic .skills-academic h2 {
+    @apply text-green-700 font-semibold mb-3;
+  }
+  
+  .resume-preview.academic .experience-academic .space-y-4 > div,
+  .resume-preview.academic .education-academic .space-y-2 > div {
+    @apply border-b border-green-100 pb-2;
+  }
+
+  /* Modern Template */
+  .resume-preview.modern .header-modern {
+    @apply border-b-2 border-indigo-200 pb-4 mb-6;
+  }
+  
+  .resume-preview.modern .header-modern h1 {
+    @apply text-2xl font-bold text-indigo-800 mb-2;
+  }
+  
+  .resume-preview.modern .experience-modern h2,
+  .resume-preview.modern .education-modern h2,
+  .resume-preview.modern .skills-modern h2 {
+    @apply text-indigo-700 font-semibold mb-3;
+  }
+  
+  .resume-preview.modern .experience-modern .space-y-4 > div {
+    @apply bg-indigo-50 p-3 rounded-lg;
+  }
+
+  /* Minimalist Template */
+  .resume-preview.minimalist .header-minimalist {
+    @apply border-b border-gray-200 pb-4 mb-6;
+  }
+  
+  .resume-preview.minimalist .header-minimalist h1 {
+    @apply text-2xl font-bold text-gray-800 mb-2;
+  }
+  
+  .resume-preview.minimalist .experience-minimalist h2,
+  .resume-preview.minimalist .education-minimalist h2,
+  .resume-preview.minimalist .skills-minimalist h2 {
+    @apply text-gray-700 font-medium mb-3;
+  }
+  
+  .resume-preview.minimalist .experience-minimalist .space-y-4 > div,
+  .resume-preview.minimalist .education-minimalist .space-y-2 > div {
+    @apply border-l border-gray-200 pl-3;
+  }
+}

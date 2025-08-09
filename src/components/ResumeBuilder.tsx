@@ -1,0 +1,1678 @@
+import { useState, useRef } from "react";
+import html2pdf from "html2pdf.js";
+import axios from "axios";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Trash2, Sparkles, Download, Check, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface Experience {
+  id: string;
+  company: string;
+  position: string;
+  duration: string;
+  description: string;
+}
+
+interface Education {
+  id: string;
+  institution: string;
+  degree: string;
+  year: string;
+}
+
+interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  year: string;
+  expiry?: string;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  technologies: string;
+  link?: string;
+}
+
+interface Award {
+  id: string;
+  name: string;
+  issuer: string;
+  year: string;
+  description?: string;
+}
+
+interface Publication {
+  id: string;
+  title: string;
+  journal?: string;
+  year: string;
+  link?: string;
+}
+
+interface ResumeData {
+  personalInfo: {
+    name: string;
+    email: string;
+    phone: string;
+    location: string;
+    linkedin: string;
+    gmail: string;
+    summary: string;
+  };
+  experience: Experience[];
+  education: Education[];
+  skills: string[];
+  certifications: Certification[];
+  projects: Project[];
+  awards: Award[];
+  publications: Publication[];
+  keywords: string[];
+}
+
+interface SectionOrder {
+  id: string;
+  title: string;
+  type: string;
+  enabled: boolean;
+}
+
+interface Template {
+  id: number;
+  name: string;
+  category: string;
+  description: string;
+  color: string;
+}
+
+const templates: Template[] = [
+  {
+    id: 1,
+    name: "ATS Classic",
+    category: "ATS-Friendly",
+    description: "Simple, clean format optimized for Applicant Tracking Systems",
+    color: "from-gray-600 to-gray-800"
+  },
+  {
+    id: 2,
+    name: "ATS Professional",
+    category: "ATS-Friendly",
+    description: "Professional layout with clear section headers for easy parsing",
+    color: "from-blue-600 to-blue-800"
+  },
+  {
+    id: 3,
+    name: "ATS Simple",
+    category: "ATS-Friendly",
+    description: "Minimalist design with maximum readability for automated systems",
+    color: "from-slate-600 to-slate-800"
+  },
+  {
+    id: 4,
+    name: "Executive",
+    category: "Leadership",
+    description: "Perfect for C-level executives and senior management positions",
+    color: "from-slate-600 to-slate-800"
+  },
+  {
+    id: 5,
+    name: "Creative",
+    category: "Design",
+    description: "Stand out in creative fields with this modern, visual template",
+    color: "from-purple-600 to-purple-800"
+  },
+  {
+    id: 6,
+    name: "Technical",
+    category: "Engineering",
+    description: "Clean, structured layout ideal for developers and engineers",
+    color: "from-blue-600 to-blue-800"
+  },
+  {
+    id: 7,
+    name: "Academic",
+    category: "Education",
+    description: "Traditional format perfect for academic and research positions",
+    color: "from-green-600 to-green-800"
+  },
+  {
+    id: 8,
+    name: "Modern",
+    category: "General",
+    description: "Contemporary design suitable for most professional roles",
+    color: "from-indigo-600 to-indigo-800"
+  },
+  {
+    id: 9,
+    name: "Minimalist",
+    category: "General",
+    description: "Clean, simple design that focuses on your content",
+    color: "from-gray-600 to-gray-800"
+  }
+];
+
+const HUGGINGFACE_API_KEY = "YOUR_HUGGINGFACE_API_KEY_HERE"; // <-- Replace with your Hugging Face API key
+
+export const ResumeBuilder = () => {
+  const { toast } = useToast();
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [resumeData, setResumeData] = useState<ResumeData>({
+    personalInfo: {
+      name: "",
+      email: "",
+      phone: "",
+      location: "",
+      linkedin: "",
+      gmail: "",
+      summary: ""
+    },
+    experience: [],
+    education: [],
+    skills: [],
+    certifications: [],
+    projects: [],
+    awards: [],
+    publications: [],
+    keywords: []
+  });
+
+  const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>([
+    { id: "summary", title: "Professional Summary", type: "summary", enabled: true },
+    { id: "skills", title: "Core Competencies / Skills", type: "skills", enabled: true },
+    { id: "experience", title: "Professional Experience", type: "experience", enabled: true },
+    { id: "education", title: "Education", type: "education", enabled: true },
+    { id: "certifications", title: "Certifications", type: "certifications", enabled: true },
+    { id: "projects", title: "Projects", type: "projects", enabled: true },
+    { id: "awards", title: "Awards & Achievements", type: "awards", enabled: true },
+    { id: "publications", title: "Publications / Research", type: "publications", enabled: true },
+    { id: "keywords", title: "Keywords", type: "keywords", enabled: true }
+  ]);
+
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  const addExperience = () => {
+    const newExp: Experience = {
+      id: Date.now().toString(),
+      company: "",
+      position: "",
+      duration: "",
+      description: ""
+    };
+    setResumeData(prev => ({
+      ...prev,
+      experience: [...prev.experience, newExp]
+    }));
+  };
+
+  const updateExperience = (id: string, field: keyof Experience, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      experience: prev.experience.map(exp => 
+        exp.id === id ? { ...exp, [field]: value } : exp
+      )
+    }));
+  };
+
+  const removeExperience = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      experience: prev.experience.filter(exp => exp.id !== id)
+    }));
+  };
+
+  const addEducation = () => {
+    const newEdu: Education = {
+      id: Date.now().toString(),
+      institution: "",
+      degree: "",
+      year: ""
+    };
+    setResumeData(prev => ({
+      ...prev,
+      education: [...prev.education, newEdu]
+    }));
+  };
+
+  const updateEducation = (id: string, field: keyof Education, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      education: prev.education.map(edu => 
+        edu.id === id ? { ...edu, [field]: value } : edu
+      )
+    }));
+  };
+
+  const removeEducation = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      education: prev.education.filter(edu => edu.id !== id)
+    }));
+  };
+
+  // Certification functions
+  const addCertification = () => {
+    const newCert: Certification = {
+      id: Date.now().toString(),
+      name: "",
+      issuer: "",
+      year: "",
+      expiry: ""
+    };
+    setResumeData(prev => ({
+      ...prev,
+      certifications: [...prev.certifications, newCert]
+    }));
+  };
+
+  const updateCertification = (id: string, field: keyof Certification, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      certifications: prev.certifications.map(cert => 
+        cert.id === id ? { ...cert, [field]: value } : cert
+      )
+    }));
+  };
+
+  const removeCertification = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      certifications: prev.certifications.filter(cert => cert.id !== id)
+    }));
+  };
+
+  // Project functions
+  const addProject = () => {
+    const newProject: Project = {
+      id: Date.now().toString(),
+      name: "",
+      description: "",
+      technologies: "",
+      link: ""
+    };
+    setResumeData(prev => ({
+      ...prev,
+      projects: [...prev.projects, newProject]
+    }));
+  };
+
+  const updateProject = (id: string, field: keyof Project, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      projects: prev.projects.map(project => 
+        project.id === id ? { ...project, [field]: value } : project
+      )
+    }));
+  };
+
+  const removeProject = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      projects: prev.projects.filter(project => project.id !== id)
+    }));
+  };
+
+  // Award functions
+  const addAward = () => {
+    const newAward: Award = {
+      id: Date.now().toString(),
+      name: "",
+      issuer: "",
+      year: "",
+      description: ""
+    };
+    setResumeData(prev => ({
+      ...prev,
+      awards: [...prev.awards, newAward]
+    }));
+  };
+
+  const updateAward = (id: string, field: keyof Award, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      awards: prev.awards.map(award => 
+        award.id === id ? { ...award, [field]: value } : award
+      )
+    }));
+  };
+
+  const removeAward = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      awards: prev.awards.filter(award => award.id !== id)
+    }));
+  };
+
+  // Publication functions
+  const addPublication = () => {
+    const newPublication: Publication = {
+      id: Date.now().toString(),
+      title: "",
+      journal: "",
+      year: "",
+      link: ""
+    };
+    setResumeData(prev => ({
+      ...prev,
+      publications: [...prev.publications, newPublication]
+    }));
+  };
+
+  const updatePublication = (id: string, field: keyof Publication, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      publications: prev.publications.map(pub => 
+        pub.id === id ? { ...pub, [field]: value } : pub
+      )
+    }));
+  };
+
+  const removePublication = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      publications: prev.publications.filter(pub => pub.id !== id)
+    }));
+  };
+
+  // Section ordering functions
+  const moveSectionUp = (index: number) => {
+    if (index > 0) {
+      setSectionOrder(prev => {
+        const newOrder = [...prev];
+        [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
+        return newOrder;
+      });
+    }
+  };
+
+  const moveSectionDown = (index: number) => {
+    if (index < sectionOrder.length - 1) {
+      setSectionOrder(prev => {
+        const newOrder = [...prev];
+        [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+        return newOrder;
+      });
+    }
+  };
+
+  const toggleSection = (id: string) => {
+    setSectionOrder(prev => 
+      prev.map(section => 
+        section.id === id ? { ...section, enabled: !section.enabled } : section
+      )
+    );
+  };
+
+  const generateAISuggestions = async () => {
+    toast({
+      title: "AI Assistant - Coming Soon",
+      description: "AI-powered resume suggestions will be available soon! We're working on making your resume building experience even better.",
+      duration: 5000
+    });
+    
+    // TODO: Implement AI suggestions when API is ready
+    // For now, show coming soon message
+  };
+
+  const applyAISuggestions = (suggestions: any) => {
+    setResumeData(prev => {
+      const updated = { ...prev };
+      
+      // Apply summary improvements
+      if (suggestions.summary) {
+        updated.personalInfo.summary = suggestions.summary;
+      }
+      
+      // Apply experience improvements
+      if (suggestions.experience && Array.isArray(suggestions.experience)) {
+        suggestions.experience.forEach((expSuggestion: any) => {
+          const existingExp = updated.experience.find(exp => exp.id === expSuggestion.id);
+          if (existingExp && expSuggestion.description) {
+            existingExp.description = expSuggestion.description;
+          }
+        });
+      }
+      
+      // Apply skills improvements
+      if (suggestions.skills && Array.isArray(suggestions.skills)) {
+        updated.skills = suggestions.skills;
+      }
+      
+      return updated;
+    });
+  };
+
+  // Check if resume has sufficient data for export
+  const hasSufficientData = () => {
+    const { personalInfo, experience, education, skills } = resumeData;
+    
+    // Check if basic required fields are filled
+    const hasBasicInfo = personalInfo.name && personalInfo.email && personalInfo.phone;
+    const hasExperience = experience.length > 0 && experience.some(exp => exp.position && exp.company);
+    const hasEducation = education.length > 0 && education.some(edu => edu.degree && edu.institution);
+    const hasSkills = skills.length > 0;
+    
+    // Check if at least one additional section has content
+    const hasAdditionalContent = 
+      resumeData.certifications.length > 0 ||
+      resumeData.projects.length > 0 ||
+      resumeData.awards.length > 0 ||
+      resumeData.publications.length > 0;
+    
+    return hasBasicInfo && (hasExperience || hasEducation || hasSkills) && hasAdditionalContent;
+  };
+
+  const getCompletionProgress = () => {
+    let completed = 0;
+    let total = 0;
+    
+    // Personal Info (3 required fields + 2 optional)
+    total += 5;
+    if (resumeData.personalInfo.name) completed++;
+    if (resumeData.personalInfo.email) completed++;
+    if (resumeData.personalInfo.phone) completed++;
+    if (resumeData.personalInfo.gmail) completed++;
+    if (resumeData.personalInfo.linkedin) completed++;
+    
+    // Experience (at least one with position and company)
+    total += 1;
+    if (resumeData.experience.length > 0 && resumeData.experience.some(exp => exp.position && exp.company)) {
+      completed++;
+    }
+    
+    // Education (at least one with degree and institution)
+    total += 1;
+    if (resumeData.education.length > 0 && resumeData.education.some(edu => edu.degree && edu.institution)) {
+      completed++;
+    }
+    
+    // Skills (at least one skill)
+    total += 1;
+    if (resumeData.skills.length > 0) {
+      completed++;
+    }
+    
+    // Additional sections (at least one)
+    total += 1;
+    const hasAdditionalContent = 
+      resumeData.certifications.length > 0 ||
+      resumeData.projects.length > 0 ||
+      resumeData.awards.length > 0 ||
+      resumeData.publications.length > 0;
+    if (hasAdditionalContent) {
+      completed++;
+    }
+    
+    return { completed, total, percentage: Math.round((completed / total) * 100) };
+  };
+
+  const getMissingFields = () => {
+    const missing = [];
+    const { personalInfo, experience, education, skills } = resumeData;
+    
+    if (!personalInfo.name) missing.push("Full Name");
+    if (!personalInfo.email) missing.push("Email");
+    if (!personalInfo.phone) missing.push("Phone");
+    
+    // Optional but recommended fields
+    if (!personalInfo.gmail) missing.push("Gmail (optional)");
+    if (!personalInfo.linkedin) missing.push("LinkedIn (recommended for IT professionals)");
+    
+    if (experience.length === 0) {
+      missing.push("Work Experience");
+    } else if (!experience.some(exp => exp.position && exp.company)) {
+      missing.push("Complete Work Experience details");
+    }
+    
+    if (education.length === 0) {
+      missing.push("Education");
+    } else if (!education.some(edu => edu.degree && edu.institution)) {
+      missing.push("Complete Education details");
+    }
+    
+    if (skills.length === 0) {
+      missing.push("Skills");
+    }
+    
+    // Check for at least one additional section
+    const hasAdditionalContent = 
+      resumeData.certifications.length > 0 ||
+      resumeData.projects.length > 0 ||
+      resumeData.awards.length > 0 ||
+      resumeData.publications.length > 0;
+    
+    if (!hasAdditionalContent) {
+      missing.push("At least one additional section (Certifications, Projects, Awards, or Publications)");
+    }
+    
+    return missing;
+  };
+
+  const exportResume = () => {
+    if (!hasSufficientData()) {
+      const missingFields = getMissingFields();
+      toast({
+        title: "Incomplete Resume",
+        description: `Please fill in the following required fields: ${missingFields.join(", ")}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Start the processing animation
+    setIsExportingPDF(true);
+
+    // Show processing for 10 seconds then generate PDF
+    setTimeout(() => {
+      if (previewRef.current) {
+        // Create a clone of the preview element to add watermark
+        const previewClone = previewRef.current.cloneNode(true) as HTMLElement;
+        
+        // Add watermark styles
+        const watermarkStyle = document.createElement('style');
+        watermarkStyle.textContent = `
+          .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 48px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            font-family: Arial, sans-serif;
+          }
+          .watermark-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+          }
+        `;
+        
+        // Create watermark element
+        const watermark = document.createElement('div');
+        watermark.className = 'watermark';
+        watermark.textContent = 'Dev Studio Sura';
+        
+        // Create container for watermark
+        const container = document.createElement('div');
+        container.className = 'watermark-container';
+        container.appendChild(previewClone);
+        container.appendChild(watermark);
+        
+        // Add watermark styles to container
+        container.appendChild(watermarkStyle);
+        
+        html2pdf()
+          .from(container)
+          .set({
+            margin: 0.5,
+            filename: "resume.pdf",
+            html2canvas: { 
+              scale: 2,
+              useCORS: true,
+              allowTaint: true
+            },
+            jsPDF: { 
+              unit: "in", 
+              format: "letter", 
+              orientation: "portrait"
+            }
+          })
+          .save()
+          .then(() => {
+            // Reset processing state after PDF is generated
+            setIsExportingPDF(false);
+            toast({
+              title: "PDF Exported Successfully",
+              description: "Your resume has been downloaded as PDF.",
+            });
+          })
+          .catch((error) => {
+            // Reset processing state on error
+            setIsExportingPDF(false);
+            toast({
+              title: "Export Error",
+              description: "Failed to generate PDF. Please try again.",
+              variant: "destructive"
+            });
+          });
+      } else {
+        setIsExportingPDF(false);
+        toast({
+          title: "Export Error",
+          description: "Could not find resume preview to export.",
+          variant: "destructive"
+        });
+      }
+    }, 10000); // 10 seconds delay
+  };
+
+  const renderTemplatePreview = () => {
+    if (!selectedTemplate) return null;
+
+    const templateStyles = {
+      1: "ats-classic",     // ATS Classic
+      2: "ats-professional", // ATS Professional
+      3: "ats-simple",      // ATS Simple
+      4: "executive",       // Executive
+      5: "creative",        // Creative
+      6: "technical",       // Technical
+      7: "academic",        // Academic
+      8: "modern",          // Modern
+      9: "minimalist"       // Minimalist
+    };
+
+    const style = templateStyles[selectedTemplate.id as keyof typeof templateStyles] || "modern";
+
+    return (
+      <div className={`resume-preview ${style}`}>
+        <div className="space-y-6">
+          {/* Header */}
+          <div className={`header-${style}`}>
+            <h1 className="text-2xl font-bold text-foreground">
+              {resumeData.personalInfo.name || "Your Name"}
+            </h1>
+            <div className="text-sm text-muted-foreground mt-2 space-y-1">
+              <div>{resumeData.personalInfo.email || "your.email@example.com"}</div>
+              {resumeData.personalInfo.gmail && (
+                <div>{resumeData.personalInfo.gmail}</div>
+              )}
+              <div>{resumeData.personalInfo.phone || "+1 (555) 123-4567"}</div>
+              <div>{resumeData.personalInfo.location || "Your Location"}</div>
+              {resumeData.personalInfo.linkedin && (
+                <div>{resumeData.personalInfo.linkedin}</div>
+              )}
+            </div>
+          </div>
+
+          {/* Render sections based on order */}
+          {sectionOrder.filter(section => section.enabled).map((section) => {
+            switch (section.type) {
+              case 'summary':
+                return resumeData.personalInfo.summary ? (
+                  <div key={section.id} className={`summary-${style}`}>
+                    <h2 className="text-lg font-semibold text-foreground mb-2">{section.title}</h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {resumeData.personalInfo.summary}
+                    </p>
+                  </div>
+                ) : null;
+
+              case 'skills':
+                return resumeData.skills.length > 0 ? (
+                  <div key={section.id} className={`skills-${style}`}>
+                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {resumeData.skills.map((skill, index) => (
+                        <span 
+                          key={index}
+                          className="px-2 py-1 bg-accent text-accent-foreground text-sm rounded"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+
+              case 'experience':
+                return resumeData.experience.length > 0 ? (
+                  <div key={section.id} className={`experience-${style}`}>
+                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
+                    <div className="space-y-4">
+                      {resumeData.experience.map((exp) => (
+                        <div key={exp.id} className="space-y-1">
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-medium text-foreground">{exp.position || "Job Title"}</h3>
+                            <span className="text-sm text-muted-foreground">{exp.duration}</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">{exp.company || "Company Name"}</div>
+                          {exp.description && (
+                            <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                              {exp.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+
+              case 'education':
+                return resumeData.education.length > 0 ? (
+                  <div key={section.id} className={`education-${style}`}>
+                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
+                    <div className="space-y-2">
+                      {resumeData.education.map((edu) => (
+                        <div key={edu.id} className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-foreground">{edu.degree || "Degree"}</div>
+                            <div className="text-sm text-muted-foreground">{edu.institution || "Institution"}</div>
+                          </div>
+                          <span className="text-sm text-muted-foreground">{edu.year}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+
+              case 'certifications':
+                return resumeData.certifications.length > 0 ? (
+                  <div key={section.id} className={`certifications-${style}`}>
+                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
+                    <div className="space-y-2">
+                      {resumeData.certifications.map((cert) => (
+                        <div key={cert.id} className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-foreground">{cert.name || "Certification Name"}</div>
+                            <div className="text-sm text-muted-foreground">{cert.issuer || "Issuing Organization"}</div>
+                          </div>
+                          <span className="text-sm text-muted-foreground">{cert.year}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+
+              case 'projects':
+                return resumeData.projects.length > 0 ? (
+                  <div key={section.id} className={`projects-${style}`}>
+                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
+                    <div className="space-y-4">
+                      {resumeData.projects.map((project) => (
+                        <div key={project.id} className="space-y-1">
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-medium text-foreground">{project.name || "Project Name"}</h3>
+                            {project.link && (
+                              <a href={project.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
+                                View Project
+                              </a>
+                            )}
+                          </div>
+                          {project.technologies && (
+                            <div className="text-sm text-muted-foreground">{project.technologies}</div>
+                          )}
+                          {project.description && (
+                            <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                              {project.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+
+              case 'awards':
+                return resumeData.awards.length > 0 ? (
+                  <div key={section.id} className={`awards-${style}`}>
+                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
+                    <div className="space-y-2">
+                      {resumeData.awards.map((award) => (
+                        <div key={award.id} className="space-y-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-medium text-foreground">{award.name || "Award Name"}</div>
+                              <div className="text-sm text-muted-foreground">{award.issuer || "Issuing Organization"}</div>
+                            </div>
+                            <span className="text-sm text-muted-foreground">{award.year}</span>
+                          </div>
+                          {award.description && (
+                            <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                              {award.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+
+              case 'publications':
+                return resumeData.publications.length > 0 ? (
+                  <div key={section.id} className={`publications-${style}`}>
+                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
+                    <div className="space-y-2">
+                      {resumeData.publications.map((pub) => (
+                        <div key={pub.id} className="space-y-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-medium text-foreground">{pub.title || "Publication Title"}</div>
+                              {pub.journal && (
+                                <div className="text-sm text-muted-foreground">{pub.journal}</div>
+                              )}
+                            </div>
+                            <span className="text-sm text-muted-foreground">{pub.year}</span>
+                          </div>
+                          {pub.link && (
+                            <a href={pub.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
+                              View Publication
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null;
+
+              case 'keywords':
+                return resumeData.keywords.length > 0 ? (
+                  <div key={section.id} className="hidden">
+                    <div className="text-xs text-muted-foreground">
+                      Keywords: {resumeData.keywords.join(', ')}
+                    </div>
+                  </div>
+                ) : null;
+
+              default:
+                return null;
+            }
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  // Template selection step
+  if (!selectedTemplate) {
+    return (
+      <div className="min-h-screen bg-gradient-subtle py-12">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Choose Your Template
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Select a professional template that matches your industry and style
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {templates.map((template) => (
+              <Card 
+                key={template.id}
+                className="group shadow-card hover:shadow-elegant transition-spring hover:scale-105 cursor-pointer"
+                onClick={() => {
+                  setSelectedTemplate(template);
+                  toast({
+                    title: "Template Selected!",
+                    description: `You've chosen the ${template.name} template. Start building your resume below.`,
+                    duration: 3000
+                  });
+                  // Automatically scroll to the builder section
+                  setTimeout(() => {
+                    const builderSection = document.querySelector('.resume-builder-section');
+                    if (builderSection) {
+                      builderSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 100);
+                }}
+              >
+                <CardContent className="p-6">
+                  {/* Template Preview */}
+                  <div className={`w-full h-48 bg-gradient-to-br ${template.color} rounded-lg mb-4 relative overflow-hidden`}>
+                    <div className="absolute inset-4 bg-white/90 rounded p-3">
+                      <div className="space-y-2">
+                        <div className="h-2 bg-gray-300 rounded w-3/4"></div>
+                        <div className="h-1 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-1 bg-gray-200 rounded w-2/3"></div>
+                        <div className="h-1 bg-gray-200 rounded w-1/3"></div>
+                        <div className="mt-3 space-y-1">
+                          <div className="h-1 bg-gray-300 rounded w-full"></div>
+                          <div className="h-1 bg-gray-300 rounded w-5/6"></div>
+                          <div className="h-1 bg-gray-300 rounded w-4/6"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute top-2 right-2">
+                      <span className="bg-black/10 text-white text-xs px-2 py-1 rounded">
+                        {template.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Template Info */}
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-smooth">
+                      {template.name}
+                    </h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {template.description}
+                    </p>
+                  </div>
+                  
+                  {/* Start Building Button */}
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <Button 
+                      className="w-full" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTemplate(template);
+                        toast({
+                          title: "Template Selected!",
+                          description: `You've chosen the ${template.name} template. Start building your resume below.`,
+                          duration: 3000
+                        });
+                        setTimeout(() => {
+                          const builderSection = document.querySelector('.resume-builder-section');
+                          if (builderSection) {
+                            builderSection.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }, 100);
+                      }}
+                    >
+                      Start Building Resume
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">ATS-Friendly Templates</h3>
+              <p className="text-blue-700 text-sm">
+                The first three templates are optimized for Applicant Tracking Systems (ATS). 
+                They use simple formatting, standard fonts, and clear section headers to ensure 
+                your resume is easily parsed by automated systems.
+              </p>
+            </div>
+            <p className="text-muted-foreground mb-6">
+              Can't decide? Our AI can suggest the best template based on your industry and experience.
+            </p>
+            <Button onClick={generateAISuggestions} variant="outline">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Get AI Template Recommendation
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-subtle py-12 resume-builder-section">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+              Resume Builder
+            </h1>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setSelectedTemplate(null)}
+              className="text-sm"
+            >
+              Change Template
+            </Button>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <span>Template:</span>
+            <span className="font-medium text-foreground">{selectedTemplate?.name}</span>
+            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+              {selectedTemplate?.category}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Builder Panel */}
+          <div className="space-y-6">
+            <Tabs defaultValue="personal" className="w-full">
+              <TabsList className="grid grid-cols-6 w-full">
+                <TabsTrigger value="personal">Personal</TabsTrigger>
+                <TabsTrigger value="skills">Skills</TabsTrigger>
+                <TabsTrigger value="experience">Experience</TabsTrigger>
+                <TabsTrigger value="education">Education</TabsTrigger>
+                <TabsTrigger value="additional">More</TabsTrigger>
+                <TabsTrigger value="layout">Layout</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="personal" className="space-y-6">
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      Personal Information
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={generateAISuggestions}
+                        className="ml-auto"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        AI Assist
+                        <span className="ml-1 text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded-full">
+                          Soon
+                        </span>
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input 
+                          id="name"
+                          value={resumeData.personalInfo.name}
+                          onChange={(e) => setResumeData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, name: e.target.value }
+                          }))}
+                          placeholder="John Doe"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input 
+                          id="email"
+                          type="email"
+                          value={resumeData.personalInfo.email}
+                          onChange={(e) => setResumeData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, email: e.target.value }
+                          }))}
+                          placeholder="john@example.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone">Phone</Label>
+                        <Input 
+                          id="phone"
+                          value={resumeData.personalInfo.phone}
+                          onChange={(e) => setResumeData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, phone: e.target.value }
+                          }))}
+                          placeholder="+1 (555) 123-4567"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="location">Location</Label>
+                        <Input 
+                          id="location"
+                          value={resumeData.personalInfo.location}
+                          onChange={(e) => setResumeData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, location: e.target.value }
+                          }))}
+                          placeholder="New York, NY"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="gmail">Gmail</Label>
+                        <Input 
+                          id="gmail"
+                          type="email"
+                          value={resumeData.personalInfo.gmail}
+                          onChange={(e) => setResumeData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, gmail: e.target.value }
+                          }))}
+                          placeholder="yourname@gmail.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="linkedin">
+                          LinkedIn
+                          <span className="text-xs text-muted-foreground ml-1">(Recommended for IT Professionals)</span>
+                        </Label>
+                        <Input 
+                          id="linkedin"
+                          value={resumeData.personalInfo.linkedin}
+                          onChange={(e) => setResumeData(prev => ({
+                            ...prev,
+                            personalInfo: { ...prev.personalInfo, linkedin: e.target.value }
+                          }))}
+                          placeholder="linkedin.com/in/yourprofile"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="summary">Professional Summary</Label>
+                      <Textarea 
+                        id="summary"
+                        value={resumeData.personalInfo.summary}
+                        onChange={(e) => setResumeData(prev => ({
+                          ...prev,
+                          personalInfo: { ...prev.personalInfo, summary: e.target.value }
+                        }))}
+                        placeholder="A brief summary of your professional background and career objectives..."
+                        rows={4}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="experience" className="space-y-6">
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      Work Experience
+                      <Button onClick={addExperience} size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Experience
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {resumeData.experience.map((exp) => (
+                      <div key={exp.id} className="p-4 border border-border rounded-lg space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium">Experience {resumeData.experience.indexOf(exp) + 1}</h4>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeExperience(exp.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <Input
+                            placeholder="Company Name"
+                            value={exp.company}
+                            onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
+                          />
+                          <Input
+                            placeholder="Job Title"
+                            value={exp.position}
+                            onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
+                          />
+                        </div>
+                        <Input
+                          placeholder="Duration (e.g., Jan 2020 - Present)"
+                          value={exp.duration}
+                          onChange={(e) => updateExperience(exp.id, 'duration', e.target.value)}
+                        />
+                        <Textarea
+                          placeholder="Describe your responsibilities and achievements..."
+                          value={exp.description}
+                          onChange={(e) => updateExperience(exp.id, 'description', e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+                    ))}
+                    {resumeData.experience.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No work experience added yet.</p>
+                        <p className="text-sm">Click "Add Experience" to get started.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="education" className="space-y-6">
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      Education
+                      <Button onClick={addEducation} size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Education
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {resumeData.education.map((edu) => (
+                      <div key={edu.id} className="p-4 border border-border rounded-lg space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium">Education {resumeData.education.indexOf(edu) + 1}</h4>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeEducation(edu.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <Input
+                            placeholder="Institution Name"
+                            value={edu.institution}
+                            onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
+                          />
+                          <Input
+                            placeholder="Degree"
+                            value={edu.degree}
+                            onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
+                          />
+                        </div>
+                        <Input
+                          placeholder="Year (e.g., 2020)"
+                          value={edu.year}
+                          onChange={(e) => updateEducation(edu.id, 'year', e.target.value)}
+                        />
+                      </div>
+                    ))}
+                    {resumeData.education.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No education added yet.</p>
+                        <p className="text-sm">Click "Add Education" to get started.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="skills" className="space-y-6">
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle>Core Competencies / Skills</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Enter your skills separated by commas (e.g., JavaScript, Python, Project Management, Communication)"
+                      value={resumeData.skills.join(', ')}
+                      onChange={(e) => setResumeData(prev => ({
+                        ...prev,
+                        skills: e.target.value.split(',').map(skill => skill.trim()).filter(Boolean)
+                      }))}
+                      rows={4}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="additional" className="space-y-6">
+                {/* Certifications */}
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      Certifications
+                      <Button onClick={addCertification} size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Certification
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {resumeData.certifications.map((cert) => (
+                      <div key={cert.id} className="p-4 border border-border rounded-lg space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium">Certification {resumeData.certifications.indexOf(cert) + 1}</h4>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeCertification(cert.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <Input
+                            placeholder="Certification Name"
+                            value={cert.name}
+                            onChange={(e) => updateCertification(cert.id, 'name', e.target.value)}
+                          />
+                          <Input
+                            placeholder="Issuing Organization"
+                            value={cert.issuer}
+                            onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)}
+                          />
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <Input
+                            placeholder="Year Obtained"
+                            value={cert.year}
+                            onChange={(e) => updateCertification(cert.id, 'year', e.target.value)}
+                          />
+                          <Input
+                            placeholder="Expiry Date (Optional)"
+                            value={cert.expiry || ''}
+                            onChange={(e) => updateCertification(cert.id, 'expiry', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {resumeData.certifications.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No certifications added yet.</p>
+                        <p className="text-sm">Click "Add Certification" to get started.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Projects */}
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      Projects
+                      <Button onClick={addProject} size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Project
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {resumeData.projects.map((project) => (
+                      <div key={project.id} className="p-4 border border-border rounded-lg space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium">Project {resumeData.projects.indexOf(project) + 1}</h4>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeProject(project.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                        <Input
+                          placeholder="Project Name"
+                          value={project.name}
+                          onChange={(e) => updateProject(project.id, 'name', e.target.value)}
+                        />
+                        <Textarea
+                          placeholder="Project description and your role..."
+                          value={project.description}
+                          onChange={(e) => updateProject(project.id, 'description', e.target.value)}
+                          rows={3}
+                        />
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <Input
+                            placeholder="Technologies Used"
+                            value={project.technologies}
+                            onChange={(e) => updateProject(project.id, 'technologies', e.target.value)}
+                          />
+                          <Input
+                            placeholder="Project Link (Optional)"
+                            value={project.link || ''}
+                            onChange={(e) => updateProject(project.id, 'link', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {resumeData.projects.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No projects added yet.</p>
+                        <p className="text-sm">Click "Add Project" to get started.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Awards & Achievements */}
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      Awards & Achievements (Optional)
+                      <Button onClick={addAward} size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Award
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {resumeData.awards.map((award) => (
+                      <div key={award.id} className="p-4 border border-border rounded-lg space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium">Award {resumeData.awards.indexOf(award) + 1}</h4>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeAward(award.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <Input
+                            placeholder="Award Name"
+                            value={award.name}
+                            onChange={(e) => updateAward(award.id, 'name', e.target.value)}
+                          />
+                          <Input
+                            placeholder="Issuing Organization"
+                            value={award.issuer}
+                            onChange={(e) => updateAward(award.id, 'issuer', e.target.value)}
+                          />
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <Input
+                            placeholder="Year"
+                            value={award.year}
+                            onChange={(e) => updateAward(award.id, 'year', e.target.value)}
+                          />
+                          <Input
+                            placeholder="Description (Optional)"
+                            value={award.description || ''}
+                            onChange={(e) => updateAward(award.id, 'description', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {resumeData.awards.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No awards added yet.</p>
+                        <p className="text-sm">Click "Add Award" to get started.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Publications / Research */}
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      Publications / Research (Optional)
+                      <Button onClick={addPublication} size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Publication
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {resumeData.publications.map((pub) => (
+                      <div key={pub.id} className="p-4 border border-border rounded-lg space-y-3">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium">Publication {resumeData.publications.indexOf(pub) + 1}</h4>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removePublication(pub.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                        <Input
+                          placeholder="Publication Title"
+                          value={pub.title}
+                          onChange={(e) => updatePublication(pub.id, 'title', e.target.value)}
+                        />
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <Input
+                            placeholder="Journal/Conference"
+                            value={pub.journal || ''}
+                            onChange={(e) => updatePublication(pub.id, 'journal', e.target.value)}
+                          />
+                          <Input
+                            placeholder="Year"
+                            value={pub.year}
+                            onChange={(e) => updatePublication(pub.id, 'year', e.target.value)}
+                          />
+                        </div>
+                        <Input
+                          placeholder="Link (Optional)"
+                          value={pub.link || ''}
+                          onChange={(e) => updatePublication(pub.id, 'link', e.target.value)}
+                        />
+                      </div>
+                    ))}
+                    {resumeData.publications.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No publications added yet.</p>
+                        <p className="text-sm">Click "Add Publication" to get started.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Keywords */}
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle>Keywords (Optional - for ATS optimization)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Textarea
+                      placeholder="Enter relevant keywords separated by commas for ATS optimization (e.g., JavaScript, React, Node.js, Agile, Scrum, Project Management)"
+                      value={resumeData.keywords.join(', ')}
+                      onChange={(e) => setResumeData(prev => ({
+                        ...prev,
+                        keywords: e.target.value.split(',').map(keyword => keyword.trim()).filter(Boolean)
+                      }))}
+                      rows={3}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      These keywords help Applicant Tracking Systems (ATS) match your resume to job requirements.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="layout" className="space-y-6">
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle>Section Order & Layout</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Drag sections up or down to reorder them in your resume. You can also enable/disable sections.
+                      </p>
+                      <div className="space-y-2">
+                        {sectionOrder.map((section, index) => (
+                          <div key={section.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={section.enabled}
+                                onChange={() => toggleSection(section.id)}
+                                className="w-4 h-4"
+                              />
+                              <span className={`font-medium ${section.enabled ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
+                                {section.title}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => moveSectionUp(index)}
+                                disabled={index === 0}
+                                className="h-8 w-8 p-0"
+                              >
+                                <ChevronUp className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => moveSectionDown(index)}
+                                disabled={index === sectionOrder.length - 1}
+                                className="h-8 w-8 p-0"
+                              >
+                                <ChevronDown className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex gap-4">
+              <Button onClick={generateAISuggestions} className="flex-1" variant="outline">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate AI Suggestions
+                <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                  Coming Soon
+                </span>
+              </Button>
+              <Button 
+                onClick={exportResume} 
+                variant={hasSufficientData() ? "default" : "outline"}
+                disabled={!hasSufficientData() || isExportingPDF}
+                className="flex-1"
+              >
+                {isExportingPDF ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                {isExportingPDF 
+                  ? "Processing PDF..." 
+                  : hasSufficientData() 
+                    ? "Export as PDF" 
+                    : "Complete Resume to Export"
+                }
+              </Button>
+            </div>
+            {!hasSufficientData() && (
+              <div className="text-center">
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <span>Resume Completion</span>
+                    <span>{getCompletionProgress().percentage}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${getCompletionProgress().percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Fill in all required fields to enable PDF export
+                </p>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Required: Name, Email, Phone, Experience/Education/Skills, and at least one additional section
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Preview Panel */}
+          <div className="lg:sticky lg:top-6">
+            <Card className="shadow-elegant">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Live Preview
+                  <span className="text-sm font-normal text-muted-foreground">
+                    {selectedTemplate?.name} Template
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <div ref={previewRef} className="bg-background border-2 border-dashed border-border rounded-lg p-8 min-h-[600px]">
+                    {renderTemplatePreview()}
+                  </div>
+                  <div className="absolute top-2 right-2 bg-primary/10 text-primary text-xs px-2 py-1 rounded">
+                    PDF will include "Dev Studio Sura" watermark
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
