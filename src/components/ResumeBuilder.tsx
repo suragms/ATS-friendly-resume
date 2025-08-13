@@ -1,14 +1,13 @@
 import { useState, useRef } from "react";
 import html2pdf from "html2pdf.js";
-import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Sparkles, Download, Check, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2, Sparkles, Download, Check, ChevronUp, ChevronDown, Loader2, Search } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Experience {
   id: string;
@@ -66,6 +65,9 @@ interface ResumeData {
     linkedin: string;
     gmail: string;
     summary: string;
+    title?: string;
+    website?: string;
+    instagram?: string;
   };
   experience: Experience[];
   education: Education[];
@@ -95,74 +97,123 @@ interface Template {
 const templates: Template[] = [
   {
     id: 1,
-    name: "ATS Classic",
-    category: "ATS-Friendly",
-    description: "Simple, clean format optimized for Applicant Tracking Systems",
-    color: "from-gray-600 to-gray-800"
+    name: "Creative Resume Template",
+    category: "Design",
+    description: "A resume template as creative as your imagination",
+    color: "from-teal-600 to-blue-700"
   },
   {
     id: 2,
-    name: "ATS Professional",
-    category: "ATS-Friendly",
-    description: "Professional layout with clear section headers for easy parsing",
-    color: "from-blue-600 to-blue-800"
+    name: "Professional Resume Template",
+    category: "General",
+    description: "Put your best foot forward with a professional resume template",
+    color: "from-blue-500 to-blue-600"
   },
   {
     id: 3,
-    name: "ATS Simple",
-    category: "ATS-Friendly",
-    description: "Minimalist design with maximum readability for automated systems",
-    color: "from-slate-600 to-slate-800"
+    name: "College Resume Template",
+    category: "Education",
+    description: "No experience? No problem!",
+    color: "from-blue-400 to-blue-500"
   },
   {
     id: 4,
-    name: "Executive",
+    name: "Executive Resume Template",
     category: "Leadership",
-    description: "Perfect for C-level executives and senior management positions",
-    color: "from-slate-600 to-slate-800"
+    description: "For senior professionals and executives",
+    color: "from-purple-600 to-indigo-700"
   },
   {
     id: 5,
-    name: "Creative",
+    name: "Minimalist Resume Template",
     category: "Design",
-    description: "Stand out in creative fields with this modern, visual template",
-    color: "from-purple-600 to-purple-800"
+    description: "Clean, simple, and elegant design",
+    color: "from-gray-500 to-gray-600"
   },
   {
     id: 6,
-    name: "Technical",
-    category: "Engineering",
-    description: "Clean, structured layout ideal for developers and engineers",
-    color: "from-blue-600 to-blue-800"
+    name: "Tech Resume Template",
+    category: "Technology",
+    description: "Perfect for software developers and IT professionals",
+    color: "from-green-500 to-emerald-600"
   },
   {
     id: 7,
-    name: "Academic",
-    category: "Education",
-    description: "Traditional format perfect for academic and research positions",
-    color: "from-green-600 to-green-800"
+    name: "Creative Portfolio Template",
+    category: "Design",
+    description: "Showcase your creative work and skills",
+    color: "from-pink-500 to-rose-600"
   },
   {
     id: 8,
-    name: "Modern",
-    category: "General",
-    description: "Contemporary design suitable for most professional roles",
-    color: "from-indigo-600 to-indigo-800"
+    name: "Academic Resume Template",
+    category: "Education",
+    description: "For researchers, professors, and academics",
+    color: "from-orange-500 to-amber-600"
   },
   {
     id: 9,
-    name: "Minimalist",
-    category: "General",
-    description: "Clean, simple design that focuses on your content",
-    color: "from-gray-600 to-gray-800"
+    name: "Sales Resume Template",
+    category: "Business",
+    description: "Highlight your sales achievements and metrics",
+    color: "from-red-500 to-pink-600"
+  },
+  {
+    id: 10,
+    name: "Healthcare Resume Template",
+    category: "Healthcare",
+    description: "Professional template for healthcare professionals",
+    color: "from-cyan-500 to-blue-600"
+  },
+  {
+    id: 11,
+    name: "Finance Resume Template",
+    category: "Finance",
+    description: "For financial analysts, accountants, and bankers",
+    color: "from-emerald-500 to-teal-600"
+  },
+  {
+    id: 12,
+    name: "Marketing Resume Template",
+    category: "Marketing",
+    description: "Showcase your marketing campaigns and results",
+    color: "from-violet-500 to-purple-600"
+  },
+  {
+    id: 13,
+    name: "Legal Resume Template",
+    category: "Legal",
+    description: "Professional template for lawyers and legal professionals",
+    color: "from-slate-600 to-gray-700"
+  },
+  {
+    id: 14,
+    name: "Engineering Resume Template",
+    category: "Engineering",
+    description: "Perfect for engineers and technical professionals",
+    color: "from-blue-600 to-indigo-700"
+  },
+  {
+    id: 15,
+    name: "Consulting Resume Template",
+    category: "Consulting",
+    description: "For consultants and strategy professionals",
+    color: "from-amber-500 to-orange-600"
+  },
+  {
+    id: 16,
+    name: "Non-Profit Resume Template",
+    category: "Non-Profit",
+    description: "Highlight your community service and impact",
+    color: "from-green-600 to-emerald-700"
   }
 ];
-
-const HUGGINGFACE_API_KEY = "YOUR_HUGGINGFACE_API_KEY_HERE"; // <-- Replace with your Hugging Face API key
 
 export const ResumeBuilder = () => {
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [templateSearch, setTemplateSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [resumeData, setResumeData] = useState<ResumeData>({
     personalInfo: {
       name: "",
@@ -171,7 +222,10 @@ export const ResumeBuilder = () => {
       location: "",
       linkedin: "",
       gmail: "",
-      summary: ""
+      summary: "",
+      title: "",
+      website: "",
+      instagram: ""
     },
     experience: [],
     education: [],
@@ -185,19 +239,91 @@ export const ResumeBuilder = () => {
 
   const [sectionOrder, setSectionOrder] = useState<SectionOrder[]>([
     { id: "summary", title: "Professional Summary", type: "summary", enabled: true },
-    { id: "skills", title: "Core Competencies / Skills", type: "skills", enabled: true },
+    { id: "skills", title: "Core Competencies & Skills", type: "skills", enabled: true },
     { id: "experience", title: "Professional Experience", type: "experience", enabled: true },
     { id: "education", title: "Education", type: "education", enabled: true },
     { id: "certifications", title: "Certifications", type: "certifications", enabled: true },
     { id: "projects", title: "Projects", type: "projects", enabled: true },
     { id: "awards", title: "Awards & Achievements", type: "awards", enabled: true },
-    { id: "publications", title: "Publications / Research", type: "publications", enabled: true },
+    { id: "publications", title: "Publications & Research", type: "publications", enabled: true },
     { id: "keywords", title: "Keywords", type: "keywords", enabled: true }
   ]);
 
   const previewRef = useRef<HTMLDivElement>(null);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [showSuccessCelebration, setShowSuccessCelebration] = useState(false);
 
+  // Validation function to check if all required data is filled
+  const validateResumeData = () => {
+    const errors: string[] = [];
+    
+    // Check personal information
+    if (!resumeData.personalInfo.name.trim()) {
+      errors.push("Full name is required");
+    }
+    if (!resumeData.personalInfo.email.trim()) {
+      errors.push("Email is required");
+    }
+    if (!resumeData.personalInfo.phone.trim()) {
+      errors.push("Phone number is required");
+    }
+    if (!resumeData.personalInfo.location.trim()) {
+      errors.push("Location is required");
+    }
+    if (!resumeData.personalInfo.summary.trim()) {
+      errors.push("Professional summary is required");
+    }
+    
+    // Check if at least one experience is added and filled
+    if (resumeData.experience.length === 0) {
+      errors.push("At least one work experience is required");
+    } else {
+      resumeData.experience.forEach((exp, index) => {
+        if (!exp.company.trim()) {
+          errors.push(`Company name is required for experience ${index + 1}`);
+        }
+        if (!exp.position.trim()) {
+          errors.push(`Job title is required for experience ${index + 1}`);
+        }
+        if (!exp.duration.trim()) {
+          errors.push(`Duration is required for experience ${index + 1}`);
+        }
+        if (!exp.description.trim()) {
+          errors.push(`Description is required for experience ${index + 1}`);
+        }
+      });
+    }
+    
+    // Check if at least one education is added and filled
+    if (resumeData.education.length === 0) {
+      errors.push("At least one education entry is required");
+    } else {
+      resumeData.education.forEach((edu, index) => {
+        if (!edu.institution.trim()) {
+          errors.push(`Institution name is required for education ${index + 1}`);
+        }
+        if (!edu.degree.trim()) {
+          errors.push(`Degree is required for education ${index + 1}`);
+        }
+        if (!edu.year.trim()) {
+          errors.push(`Year is required for education ${index + 1}`);
+        }
+      });
+    }
+    
+    // Check if skills are added
+    if (resumeData.skills.length === 0) {
+      errors.push("At least one skill is required");
+    }
+    
+    return errors;
+  };
+
+  const isResumeComplete = () => {
+    return validateResumeData().length === 0;
+  };
+
+  // Experience functions
   const addExperience = () => {
     const newExp: Experience = {
       id: Date.now().toString(),
@@ -228,6 +354,7 @@ export const ResumeBuilder = () => {
     }));
   };
 
+  // Education functions
   const addEducation = () => {
     const newEdu: Education = {
       id: Date.now().toString(),
@@ -257,633 +384,100 @@ export const ResumeBuilder = () => {
     }));
   };
 
-  // Certification functions
-  const addCertification = () => {
-    const newCert: Certification = {
-      id: Date.now().toString(),
-      name: "",
-      issuer: "",
-      year: "",
-      expiry: ""
-    };
+  // Skills functions
+  const updateSkills = (skillsString: string) => {
+    // Split by comma and clean up each skill
+    const skillsArray = skillsString
+      .split(',')
+      .map(skill => skill.trim())
+      .filter(skill => skill.length > 0);
+    
     setResumeData(prev => ({
       ...prev,
-      certifications: [...prev.certifications, newCert]
+      skills: skillsArray
     }));
   };
 
-  const updateCertification = (id: string, field: keyof Certification, value: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      certifications: prev.certifications.map(cert => 
-        cert.id === id ? { ...cert, [field]: value } : cert
-      )
-    }));
-  };
-
-  const removeCertification = (id: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      certifications: prev.certifications.filter(cert => cert.id !== id)
-    }));
-  };
-
-  // Project functions
-  const addProject = () => {
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: "",
-      description: "",
-      technologies: "",
-      link: ""
-    };
-    setResumeData(prev => ({
-      ...prev,
-      projects: [...prev.projects, newProject]
-    }));
-  };
-
-  const updateProject = (id: string, field: keyof Project, value: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      projects: prev.projects.map(project => 
-        project.id === id ? { ...project, [field]: value } : project
-      )
-    }));
-  };
-
-  const removeProject = (id: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      projects: prev.projects.filter(project => project.id !== id)
-    }));
-  };
-
-  // Award functions
-  const addAward = () => {
-    const newAward: Award = {
-      id: Date.now().toString(),
-      name: "",
-      issuer: "",
-      year: "",
-      description: ""
-    };
-    setResumeData(prev => ({
-      ...prev,
-      awards: [...prev.awards, newAward]
-    }));
-  };
-
-  const updateAward = (id: string, field: keyof Award, value: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      awards: prev.awards.map(award => 
-        award.id === id ? { ...award, [field]: value } : award
-      )
-    }));
-  };
-
-  const removeAward = (id: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      awards: prev.awards.filter(award => award.id !== id)
-    }));
-  };
-
-  // Publication functions
-  const addPublication = () => {
-    const newPublication: Publication = {
-      id: Date.now().toString(),
-      title: "",
-      journal: "",
-      year: "",
-      link: ""
-    };
-    setResumeData(prev => ({
-      ...prev,
-      publications: [...prev.publications, newPublication]
-    }));
-  };
-
-  const updatePublication = (id: string, field: keyof Publication, value: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      publications: prev.publications.map(pub => 
-        pub.id === id ? { ...pub, [field]: value } : pub
-      )
-    }));
-  };
-
-  const removePublication = (id: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      publications: prev.publications.filter(pub => pub.id !== id)
-    }));
-  };
-
-  // Section ordering functions
-  const moveSectionUp = (index: number) => {
-    if (index > 0) {
-      setSectionOrder(prev => {
-        const newOrder = [...prev];
-        [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
-        return newOrder;
-      });
+  const addSkill = (skill: string) => {
+    if (skill.trim() && !resumeData.skills.includes(skill.trim())) {
+      setResumeData(prev => ({
+        ...prev,
+        skills: [...prev.skills, skill.trim()]
+      }));
     }
   };
 
-  const moveSectionDown = (index: number) => {
-    if (index < sectionOrder.length - 1) {
-      setSectionOrder(prev => {
-        const newOrder = [...prev];
-        [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
-        return newOrder;
-      });
-    }
+  const removeSkill = (skillToRemove: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(skill => skill !== skillToRemove)
+    }));
   };
 
-  const toggleSection = (id: string) => {
-    setSectionOrder(prev => 
-      prev.map(section => 
-        section.id === id ? { ...section, enabled: !section.enabled } : section
-      )
-    );
-  };
-
-  const generateAISuggestions = async () => {
-    toast({
-      title: "AI Assistant - Coming Soon",
-      description: "AI-powered resume suggestions will be available soon! We're working on making your resume building experience even better.",
-      duration: 5000
-    });
-    
-    // TODO: Implement AI suggestions when API is ready
-    // For now, show coming soon message
-  };
-
-  const applyAISuggestions = (suggestions: any) => {
-    setResumeData(prev => {
-      const updated = { ...prev };
-      
-      // Apply summary improvements
-      if (suggestions.summary) {
-        updated.personalInfo.summary = suggestions.summary;
-      }
-      
-      // Apply experience improvements
-      if (suggestions.experience && Array.isArray(suggestions.experience)) {
-        suggestions.experience.forEach((expSuggestion: any) => {
-          const existingExp = updated.experience.find(exp => exp.id === expSuggestion.id);
-          if (existingExp && expSuggestion.description) {
-            existingExp.description = expSuggestion.description;
-          }
-        });
-      }
-      
-      // Apply skills improvements
-      if (suggestions.skills && Array.isArray(suggestions.skills)) {
-        updated.skills = suggestions.skills;
-      }
-      
-      return updated;
-    });
-  };
-
-  // Check if resume has sufficient data for export
-  const hasSufficientData = () => {
-    const { personalInfo, experience, education, skills } = resumeData;
-    
-    // Check if basic required fields are filled
-    const hasBasicInfo = personalInfo.name && personalInfo.email && personalInfo.phone;
-    const hasExperience = experience.length > 0 && experience.some(exp => exp.position && exp.company);
-    const hasEducation = education.length > 0 && education.some(edu => edu.degree && edu.institution);
-    const hasSkills = skills.length > 0;
-    
-    // Check if at least one additional section has content
-    const hasAdditionalContent = 
-      resumeData.certifications.length > 0 ||
-      resumeData.projects.length > 0 ||
-      resumeData.awards.length > 0 ||
-      resumeData.publications.length > 0;
-    
-    return hasBasicInfo && (hasExperience || hasEducation || hasSkills) && hasAdditionalContent;
-  };
-
-  const getCompletionProgress = () => {
-    let completed = 0;
-    let total = 0;
-    
-    // Personal Info (3 required fields + 2 optional)
-    total += 5;
-    if (resumeData.personalInfo.name) completed++;
-    if (resumeData.personalInfo.email) completed++;
-    if (resumeData.personalInfo.phone) completed++;
-    if (resumeData.personalInfo.gmail) completed++;
-    if (resumeData.personalInfo.linkedin) completed++;
-    
-    // Experience (at least one with position and company)
-    total += 1;
-    if (resumeData.experience.length > 0 && resumeData.experience.some(exp => exp.position && exp.company)) {
-      completed++;
-    }
-    
-    // Education (at least one with degree and institution)
-    total += 1;
-    if (resumeData.education.length > 0 && resumeData.education.some(edu => edu.degree && edu.institution)) {
-      completed++;
-    }
-    
-    // Skills (at least one skill)
-    total += 1;
-    if (resumeData.skills.length > 0) {
-      completed++;
-    }
-    
-    // Additional sections (at least one)
-    total += 1;
-    const hasAdditionalContent = 
-      resumeData.certifications.length > 0 ||
-      resumeData.projects.length > 0 ||
-      resumeData.awards.length > 0 ||
-      resumeData.publications.length > 0;
-    if (hasAdditionalContent) {
-      completed++;
-    }
-    
-    return { completed, total, percentage: Math.round((completed / total) * 100) };
-  };
-
-  const getMissingFields = () => {
-    const missing = [];
-    const { personalInfo, experience, education, skills } = resumeData;
-    
-    if (!personalInfo.name) missing.push("Full Name");
-    if (!personalInfo.email) missing.push("Email");
-    if (!personalInfo.phone) missing.push("Phone");
-    
-    // Optional but recommended fields
-    if (!personalInfo.gmail) missing.push("Gmail (optional)");
-    if (!personalInfo.linkedin) missing.push("LinkedIn (recommended for IT professionals)");
-    
-    if (experience.length === 0) {
-      missing.push("Work Experience");
-    } else if (!experience.some(exp => exp.position && exp.company)) {
-      missing.push("Complete Work Experience details");
-    }
-    
-    if (education.length === 0) {
-      missing.push("Education");
-    } else if (!education.some(edu => edu.degree && edu.institution)) {
-      missing.push("Complete Education details");
-    }
-    
-    if (skills.length === 0) {
-      missing.push("Skills");
-    }
-    
-    // Check for at least one additional section
-    const hasAdditionalContent = 
-      resumeData.certifications.length > 0 ||
-      resumeData.projects.length > 0 ||
-      resumeData.awards.length > 0 ||
-      resumeData.publications.length > 0;
-    
-    if (!hasAdditionalContent) {
-      missing.push("At least one additional section (Certifications, Projects, Awards, or Publications)");
-    }
-    
-    return missing;
-  };
-
+  // Export function
   const exportResume = () => {
-    if (!hasSufficientData()) {
-      const missingFields = getMissingFields();
+    const validationErrors = validateResumeData();
+    
+    if (validationErrors.length > 0) {
       toast({
         title: "Incomplete Resume",
-        description: `Please fill in the following required fields: ${missingFields.join(", ")}`,
+        description: `Please complete the following fields: ${validationErrors.slice(0, 3).join(', ')}${validationErrors.length > 3 ? ' and more...' : ''}`,
         variant: "destructive"
       });
       return;
     }
-
-    // Start the processing animation
+    
+    if (!previewRef.current) return;
+    
     setIsExportingPDF(true);
-
-    // Show processing for 10 seconds then generate PDF
+    
+    // Show initial processing toast
+    toast({
+      title: "Processing Resume",
+      description: "Converting your resume to PDF format...",
+    });
+    
+    // Simulate processing steps for better UX
     setTimeout(() => {
-      if (previewRef.current) {
-        // Create a clone of the preview element to add watermark
-        const previewClone = previewRef.current.cloneNode(true) as HTMLElement;
-        
-        // Add watermark styles
-        const watermarkStyle = document.createElement('style');
-        watermarkStyle.textContent = `
-          .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 48px;
-            font-weight: bold;
-            color: rgba(0, 0, 0, 0.1);
-            pointer-events: none;
-            z-index: 1000;
-            white-space: nowrap;
-            font-family: Arial, sans-serif;
-          }
-          .watermark-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-          }
-        `;
-        
-        // Create watermark element
-        const watermark = document.createElement('div');
-        watermark.className = 'watermark';
-        watermark.textContent = 'Dev Studio Sura';
-        
-        // Create container for watermark
-        const container = document.createElement('div');
-        container.className = 'watermark-container';
-        container.appendChild(previewClone);
-        container.appendChild(watermark);
-        
-        // Add watermark styles to container
-        container.appendChild(watermarkStyle);
-        
-        html2pdf()
-          .from(container)
-          .set({
-            margin: 0.5,
-            filename: "resume.pdf",
-            html2canvas: { 
-              scale: 2,
-              useCORS: true,
-              allowTaint: true
-            },
-            jsPDF: { 
-              unit: "in", 
-              format: "letter", 
-              orientation: "portrait"
-            }
-          })
-          .save()
-          .then(() => {
-            // Reset processing state after PDF is generated
-            setIsExportingPDF(false);
-            toast({
-              title: "PDF Exported Successfully",
-              description: "Your resume has been downloaded as PDF.",
-            });
-          })
-          .catch((error) => {
-            // Reset processing state on error
-            setIsExportingPDF(false);
-            toast({
-              title: "Export Error",
-              description: "Failed to generate PDF. Please try again.",
-              variant: "destructive"
-            });
-          });
-      } else {
+      toast({
+        title: "Generating PDF",
+        description: "Finalizing your professional resume...",
+      });
+    }, 1000);
+    
+    html2pdf()
+      .from(previewRef.current)
+      .set({
+        margin: 0.5,
+        filename: `${resumeData.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" }
+      })
+      .save()
+      .then(() => {
         setIsExportingPDF(false);
+        setShowSuccessCelebration(true);
         toast({
-          title: "Export Error",
-          description: "Could not find resume preview to export.",
+          title: "🎉 Resume Exported Successfully!",
+          description: `Your professional resume "${resumeData.personalInfo.name || 'Resume'}" has been downloaded as PDF.`,
+        });
+        
+        // Hide celebration after 5 seconds
+        setTimeout(() => {
+          setShowSuccessCelebration(false);
+        }, 5000);
+      })
+      .catch((error) => {
+        setIsExportingPDF(false);
+        console.error('PDF Export Error:', error);
+        toast({
+          title: "Export Failed",
+          description: "Failed to generate PDF. Please check your browser settings and try again.",
           variant: "destructive"
         });
-      }
-    }, 10000); // 10 seconds delay
+      });
   };
 
-  const renderTemplatePreview = () => {
-    if (!selectedTemplate) return null;
-
-    const templateStyles = {
-      1: "ats-classic",     // ATS Classic
-      2: "ats-professional", // ATS Professional
-      3: "ats-simple",      // ATS Simple
-      4: "executive",       // Executive
-      5: "creative",        // Creative
-      6: "technical",       // Technical
-      7: "academic",        // Academic
-      8: "modern",          // Modern
-      9: "minimalist"       // Minimalist
-    };
-
-    const style = templateStyles[selectedTemplate.id as keyof typeof templateStyles] || "modern";
-
-    return (
-      <div className={`resume-preview ${style}`}>
-        <div className="space-y-6">
-          {/* Header */}
-          <div className={`header-${style}`}>
-            <h1 className="text-2xl font-bold text-foreground">
-              {resumeData.personalInfo.name || "Your Name"}
-            </h1>
-            <div className="text-sm text-muted-foreground mt-2 space-y-1">
-              <div>{resumeData.personalInfo.email || "your.email@example.com"}</div>
-              {resumeData.personalInfo.gmail && (
-                <div>{resumeData.personalInfo.gmail}</div>
-              )}
-              <div>{resumeData.personalInfo.phone || "+1 (555) 123-4567"}</div>
-              <div>{resumeData.personalInfo.location || "Your Location"}</div>
-              {resumeData.personalInfo.linkedin && (
-                <div>{resumeData.personalInfo.linkedin}</div>
-              )}
-            </div>
-          </div>
-
-          {/* Render sections based on order */}
-          {sectionOrder.filter(section => section.enabled).map((section) => {
-            switch (section.type) {
-              case 'summary':
-                return resumeData.personalInfo.summary ? (
-                  <div key={section.id} className={`summary-${style}`}>
-                    <h2 className="text-lg font-semibold text-foreground mb-2">{section.title}</h2>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {resumeData.personalInfo.summary}
-                    </p>
-                  </div>
-                ) : null;
-
-              case 'skills':
-                return resumeData.skills.length > 0 ? (
-                  <div key={section.id} className={`skills-${style}`}>
-                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {resumeData.skills.map((skill, index) => (
-                        <span 
-                          key={index}
-                          className="px-2 py-1 bg-accent text-accent-foreground text-sm rounded"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ) : null;
-
-              case 'experience':
-                return resumeData.experience.length > 0 ? (
-                  <div key={section.id} className={`experience-${style}`}>
-                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
-                    <div className="space-y-4">
-                      {resumeData.experience.map((exp) => (
-                        <div key={exp.id} className="space-y-1">
-                          <div className="flex justify-between items-start">
-                            <h3 className="font-medium text-foreground">{exp.position || "Job Title"}</h3>
-                            <span className="text-sm text-muted-foreground">{exp.duration}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground">{exp.company || "Company Name"}</div>
-                          {exp.description && (
-                            <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-                              {exp.description}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null;
-
-              case 'education':
-                return resumeData.education.length > 0 ? (
-                  <div key={section.id} className={`education-${style}`}>
-                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
-                    <div className="space-y-2">
-                      {resumeData.education.map((edu) => (
-                        <div key={edu.id} className="flex justify-between items-start">
-                          <div>
-                            <div className="font-medium text-foreground">{edu.degree || "Degree"}</div>
-                            <div className="text-sm text-muted-foreground">{edu.institution || "Institution"}</div>
-                          </div>
-                          <span className="text-sm text-muted-foreground">{edu.year}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null;
-
-              case 'certifications':
-                return resumeData.certifications.length > 0 ? (
-                  <div key={section.id} className={`certifications-${style}`}>
-                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
-                    <div className="space-y-2">
-                      {resumeData.certifications.map((cert) => (
-                        <div key={cert.id} className="flex justify-between items-start">
-                          <div>
-                            <div className="font-medium text-foreground">{cert.name || "Certification Name"}</div>
-                            <div className="text-sm text-muted-foreground">{cert.issuer || "Issuing Organization"}</div>
-                          </div>
-                          <span className="text-sm text-muted-foreground">{cert.year}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null;
-
-              case 'projects':
-                return resumeData.projects.length > 0 ? (
-                  <div key={section.id} className={`projects-${style}`}>
-                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
-                    <div className="space-y-4">
-                      {resumeData.projects.map((project) => (
-                        <div key={project.id} className="space-y-1">
-                          <div className="flex justify-between items-start">
-                            <h3 className="font-medium text-foreground">{project.name || "Project Name"}</h3>
-                            {project.link && (
-                              <a href={project.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
-                                View Project
-                              </a>
-                            )}
-                          </div>
-                          {project.technologies && (
-                            <div className="text-sm text-muted-foreground">{project.technologies}</div>
-                          )}
-                          {project.description && (
-                            <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-                              {project.description}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null;
-
-              case 'awards':
-                return resumeData.awards.length > 0 ? (
-                  <div key={section.id} className={`awards-${style}`}>
-                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
-                    <div className="space-y-2">
-                      {resumeData.awards.map((award) => (
-                        <div key={award.id} className="space-y-1">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="font-medium text-foreground">{award.name || "Award Name"}</div>
-                              <div className="text-sm text-muted-foreground">{award.issuer || "Issuing Organization"}</div>
-                            </div>
-                            <span className="text-sm text-muted-foreground">{award.year}</span>
-                          </div>
-                          {award.description && (
-                            <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-                              {award.description}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null;
-
-              case 'publications':
-                return resumeData.publications.length > 0 ? (
-                  <div key={section.id} className={`publications-${style}`}>
-                    <h2 className="text-lg font-semibold text-foreground mb-3">{section.title}</h2>
-                    <div className="space-y-2">
-                      {resumeData.publications.map((pub) => (
-                        <div key={pub.id} className="space-y-1">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="font-medium text-foreground">{pub.title || "Publication Title"}</div>
-                              {pub.journal && (
-                                <div className="text-sm text-muted-foreground">{pub.journal}</div>
-                              )}
-                            </div>
-                            <span className="text-sm text-muted-foreground">{pub.year}</span>
-                          </div>
-                          {pub.link && (
-                            <a href={pub.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
-                              View Publication
-                            </a>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null;
-
-              case 'keywords':
-                return resumeData.keywords.length > 0 ? (
-                  <div key={section.id} className="hidden">
-                    <div className="text-xs text-muted-foreground">
-                      Keywords: {resumeData.keywords.join(', ')}
-                    </div>
-                  </div>
-                ) : null;
-
-              default:
-                return null;
-            }
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  // Template selection step
   if (!selectedTemplate) {
     return (
       <div className="min-h-screen bg-gradient-subtle py-12">
@@ -897,105 +491,163 @@ export const ResumeBuilder = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {templates.map((template) => (
-              <Card 
-                key={template.id}
-                className="group shadow-card hover:shadow-elegant transition-spring hover:scale-105 cursor-pointer"
-                onClick={() => {
-                  setSelectedTemplate(template);
-                  toast({
-                    title: "Template Selected!",
-                    description: `You've chosen the ${template.name} template. Start building your resume below.`,
-                    duration: 3000
-                  });
-                  // Automatically scroll to the builder section
-                  setTimeout(() => {
-                    const builderSection = document.querySelector('.resume-builder-section');
-                    if (builderSection) {
-                      builderSection.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }, 100);
-                }}
-              >
-                <CardContent className="p-6">
-                  {/* Template Preview */}
-                  <div className={`w-full h-48 bg-gradient-to-br ${template.color} rounded-lg mb-4 relative overflow-hidden`}>
-                    <div className="absolute inset-4 bg-white/90 rounded p-3">
-                      <div className="space-y-2">
-                        <div className="h-2 bg-gray-300 rounded w-3/4"></div>
-                        <div className="h-1 bg-gray-200 rounded w-1/2"></div>
-                        <div className="h-1 bg-gray-200 rounded w-2/3"></div>
-                        <div className="h-1 bg-gray-200 rounded w-1/3"></div>
-                        <div className="mt-3 space-y-1">
-                          <div className="h-1 bg-gray-300 rounded w-full"></div>
-                          <div className="h-1 bg-gray-300 rounded w-5/6"></div>
-                          <div className="h-1 bg-gray-300 rounded w-4/6"></div>
+          {/* Featured Templates */}
+          <div className="max-w-6xl mx-auto mb-12">
+            <h2 className="text-2xl font-semibold text-foreground mb-6 text-center">Featured Templates</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {templates.slice(0, 3).map((template) => (
+                <Card 
+                  key={template.id}
+                  className="group shadow-card hover:shadow-elegant transition-spring hover:scale-105 cursor-pointer border-2 border-primary/20"
+                  onClick={() => setSelectedTemplate(template)}
+                >
+                  <CardContent className="p-6">
+                    <div className={`w-full h-32 bg-gradient-to-br ${template.color} rounded-lg mb-4 relative overflow-hidden`}>
+                      <div className="absolute inset-3 bg-white/90 rounded p-2">
+                        <div className="space-y-1">
+                          <div className="h-1.5 bg-gray-300 rounded w-3/4"></div>
+                          <div className="h-1 bg-gray-200 rounded w-1/2"></div>
+                          <div className="h-1 bg-gray-200 rounded w-2/3"></div>
                         </div>
                       </div>
                     </div>
-                    <div className="absolute top-2 right-2">
-                      <span className="bg-black/10 text-white text-xs px-2 py-1 rounded">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="inline-block px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                        {template.category}
+                      </span>
+                      <span className="text-xs text-muted-foreground">⭐ Featured</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {template.name}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      {template.description}
+                    </p>
+                    <Button className="w-full" onClick={() => setSelectedTemplate(template)}>
+                      Start Building Resume
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Search and Filter */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+              <div className="relative w-full max-w-md">
+                <Input
+                  placeholder="Search templates..."
+                  value={templateSearch}
+                  onChange={(e) => setTemplateSearch(e.target.value)}
+                  className="pl-10"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              </div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-4 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="All">All Categories</option>
+                <option value="Design">Design</option>
+                <option value="General">General</option>
+                <option value="Education">Education</option>
+                <option value="Leadership">Leadership</option>
+                <option value="Technology">Technology</option>
+                <option value="Business">Business</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Finance">Finance</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Legal">Legal</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Consulting">Consulting</option>
+                <option value="Non-Profit">Non-Profit</option>
+              </select>
+            </div>
+            <div className="text-center mt-4 text-sm text-muted-foreground">
+              {(() => {
+                const filteredCount = templates.filter(template => 
+                  (selectedCategory === "All" || template.category === selectedCategory) &&
+                  (templateSearch === "" || 
+                    template.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+                    template.description.toLowerCase().includes(templateSearch.toLowerCase()) ||
+                    template.category.toLowerCase().includes(templateSearch.toLowerCase()))
+                ).length;
+                return `${filteredCount} of ${templates.length} templates`;
+              })()}
+            </div>
+          </div>
+
+                    <div className="text-center mb-8">
+            <h2 className="text-2xl font-semibold text-foreground">All Templates</h2>
+            <p className="text-muted-foreground">Browse our complete collection of professional resume templates</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {(() => {
+              const filteredTemplates = templates.filter(template => 
+                (selectedCategory === "All" || template.category === selectedCategory) &&
+                (templateSearch === "" || 
+                  template.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+                  template.description.toLowerCase().includes(templateSearch.toLowerCase()) ||
+                  template.category.toLowerCase().includes(templateSearch.toLowerCase()))
+              );
+              
+              if (filteredTemplates.length === 0) {
+                return (
+                  <div className="col-span-full text-center py-12">
+                    <div className="text-muted-foreground text-lg mb-4">
+                      No templates found matching your criteria
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setTemplateSearch("");
+                        setSelectedCategory("All");
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                );
+              }
+              
+              return filteredTemplates.map((template) => (
+                <Card 
+                  key={template.id}
+                  className="group shadow-card hover:shadow-elegant transition-spring hover:scale-105 cursor-pointer"
+                  onClick={() => setSelectedTemplate(template)}
+                >
+                  <CardContent className="p-6">
+                    <div className={`w-full h-48 bg-gradient-to-br ${template.color} rounded-lg mb-4 relative overflow-hidden`}>
+                      <div className="absolute inset-4 bg-white/90 rounded p-3">
+                        <div className="space-y-2">
+                                                   <div className="h-2 bg-gray-300 rounded w-3/4"></div>
+                         <div className="h-1 bg-gray-200 rounded w-1/2"></div>
+                         <div className="h-1 bg-gray-200 rounded w-2/3"></div>
+                         <div className="h-1 bg-gray-200 rounded w-1/3"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="inline-block px-2 py-1 text-xs font-medium bg-accent text-accent-foreground rounded-full">
                         {template.category}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Template Info */}
-                  <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-smooth">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
                       {template.name}
                     </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
+                    <p className="text-muted-foreground text-sm">
                       {template.description}
                     </p>
-                  </div>
-                  
-                  {/* Start Building Button */}
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <Button 
-                      className="w-full" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedTemplate(template);
-                        toast({
-                          title: "Template Selected!",
-                          description: `You've chosen the ${template.name} template. Start building your resume below.`,
-                          duration: 3000
-                        });
-                        setTimeout(() => {
-                          const builderSection = document.querySelector('.resume-builder-section');
-                          if (builderSection) {
-                            builderSection.scrollIntoView({ behavior: 'smooth' });
-                          }
-                        }, 100);
-                      }}
-                    >
+                    <Button className="w-full mt-4" onClick={() => setSelectedTemplate(template)}>
                       Start Building Resume
                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">ATS-Friendly Templates</h3>
-              <p className="text-blue-700 text-sm">
-                The first three templates are optimized for Applicant Tracking Systems (ATS). 
-                They use simple formatting, standard fonts, and clear section headers to ensure 
-                your resume is easily parsed by automated systems.
-              </p>
-            </div>
-            <p className="text-muted-foreground mb-6">
-              Can't decide? Our AI can suggest the best template based on your industry and experience.
-            </p>
-            <Button onClick={generateAISuggestions} variant="outline">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Get AI Template Recommendation
-            </Button>
+                  </CardContent>
+                </Card>
+              ));
+            })()}
           </div>
         </div>
       </div>
@@ -1003,62 +655,37 @@ export const ResumeBuilder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle py-12 resume-builder-section">
+    <div className="min-h-screen bg-gradient-subtle py-12">
       <div className="container mx-auto px-6">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-              Resume Builder
-            </h1>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setSelectedTemplate(null)}
-              className="text-sm"
-            >
-              Change Template
-            </Button>
-          </div>
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
-            <span>Template:</span>
-            <span className="font-medium text-foreground">{selectedTemplate?.name}</span>
-            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-              {selectedTemplate?.category}
-            </span>
-          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+            Resume Builder
+          </h1>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setSelectedTemplate(null)}
+            className="mt-4"
+          >
+            Change Template
+          </Button>
         </div>
-
+        
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Builder Panel */}
           <div className="space-y-6">
             <Tabs defaultValue="personal" className="w-full">
-              <TabsList className="grid grid-cols-6 w-full">
+              <TabsList className="grid grid-cols-4 w-full">
                 <TabsTrigger value="personal">Personal</TabsTrigger>
-                <TabsTrigger value="skills">Skills</TabsTrigger>
                 <TabsTrigger value="experience">Experience</TabsTrigger>
                 <TabsTrigger value="education">Education</TabsTrigger>
-                <TabsTrigger value="additional">More</TabsTrigger>
-                <TabsTrigger value="layout">Layout</TabsTrigger>
+                <TabsTrigger value="skills">Skills</TabsTrigger>
               </TabsList>
 
               <TabsContent value="personal" className="space-y-6">
                 <Card className="shadow-card">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      Personal Information
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={generateAISuggestions}
-                        className="ml-auto"
-                      >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        AI Assist
-                        <span className="ml-1 text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded-full">
-                          Soon
-                        </span>
-                      </Button>
-                    </CardTitle>
+                    <CardTitle>Personal Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
@@ -1109,34 +736,6 @@ export const ResumeBuilder = () => {
                             personalInfo: { ...prev.personalInfo, location: e.target.value }
                           }))}
                           placeholder="New York, NY"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="gmail">Gmail</Label>
-                        <Input 
-                          id="gmail"
-                          type="email"
-                          value={resumeData.personalInfo.gmail}
-                          onChange={(e) => setResumeData(prev => ({
-                            ...prev,
-                            personalInfo: { ...prev.personalInfo, gmail: e.target.value }
-                          }))}
-                          placeholder="yourname@gmail.com"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="linkedin">
-                          LinkedIn
-                          <span className="text-xs text-muted-foreground ml-1">(Recommended for IT Professionals)</span>
-                        </Label>
-                        <Input 
-                          id="linkedin"
-                          value={resumeData.personalInfo.linkedin}
-                          onChange={(e) => setResumeData(prev => ({
-                            ...prev,
-                            personalInfo: { ...prev.personalInfo, linkedin: e.target.value }
-                          }))}
-                          placeholder="linkedin.com/in/yourprofile"
                         />
                       </div>
                     </div>
@@ -1272,379 +871,272 @@ export const ResumeBuilder = () => {
               <TabsContent value="skills" className="space-y-6">
                 <Card className="shadow-card">
                   <CardHeader>
-                    <CardTitle>Core Competencies / Skills</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Enter your skills separated by commas (e.g., JavaScript, Python, Project Management, Communication)"
-                      value={resumeData.skills.join(', ')}
-                      onChange={(e) => setResumeData(prev => ({
-                        ...prev,
-                        skills: e.target.value.split(',').map(skill => skill.trim()).filter(Boolean)
-                      }))}
-                      rows={4}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="additional" className="space-y-6">
-                {/* Certifications */}
-                <Card className="shadow-card">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      Certifications
-                      <Button onClick={addCertification} size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Certification
-                      </Button>
-                    </CardTitle>
+                    <CardTitle>Core Competencies & Skills</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {resumeData.certifications.map((cert) => (
-                      <div key={cert.id} className="p-4 border border-border rounded-lg space-y-3">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-medium">Certification {resumeData.certifications.indexOf(cert) + 1}</h4>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removeCertification(cert.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-3">
-                          <Input
-                            placeholder="Certification Name"
-                            value={cert.name}
-                            onChange={(e) => updateCertification(cert.id, 'name', e.target.value)}
-                          />
-                          <Input
-                            placeholder="Issuing Organization"
-                            value={cert.issuer}
-                            onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)}
-                          />
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-3">
-                          <Input
-                            placeholder="Year Obtained"
-                            value={cert.year}
-                            onChange={(e) => updateCertification(cert.id, 'year', e.target.value)}
-                          />
-                          <Input
-                            placeholder="Expiry Date (Optional)"
-                            value={cert.expiry || ''}
-                            onChange={(e) => updateCertification(cert.id, 'expiry', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    {resumeData.certifications.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No certifications added yet.</p>
-                        <p className="text-sm">Click "Add Certification" to get started.</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Projects */}
-                <Card className="shadow-card">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      Projects
-                      <Button onClick={addProject} size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Project
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {resumeData.projects.map((project) => (
-                      <div key={project.id} className="p-4 border border-border rounded-lg space-y-3">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-medium">Project {resumeData.projects.indexOf(project) + 1}</h4>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removeProject(project.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
+                    {/* Skills Input */}
+                    <div className="space-y-2">
+                      <Label htmlFor="skills-input">Add Skills</Label>
+                      <div className="flex gap-2">
                         <Input
-                          placeholder="Project Name"
-                          value={project.name}
-                          onChange={(e) => updateProject(project.id, 'name', e.target.value)}
+                          id="skills-input"
+                          placeholder="Type a skill and press Enter or comma"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ',') {
+                              e.preventDefault();
+                              const value = (e.target as HTMLInputElement).value.trim();
+                              if (value) {
+                                addSkill(value);
+                                (e.target as HTMLInputElement).value = '';
+                              }
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const value = e.target.value.trim();
+                            if (value) {
+                              addSkill(value);
+                              e.target.value = '';
+                            }
+                          }}
                         />
-                        <Textarea
-                          placeholder="Project description and your role..."
-                          value={project.description}
-                          onChange={(e) => updateProject(project.id, 'description', e.target.value)}
-                          rows={3}
-                        />
-                        <div className="grid md:grid-cols-2 gap-3">
-                          <Input
-                            placeholder="Technologies Used"
-                            value={project.technologies}
-                            onChange={(e) => updateProject(project.id, 'technologies', e.target.value)}
-                          />
-                          <Input
-                            placeholder="Project Link (Optional)"
-                            value={project.link || ''}
-                            onChange={(e) => updateProject(project.id, 'link', e.target.value)}
-                          />
-                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const input = document.getElementById('skills-input') as HTMLInputElement;
+                            const value = input.value.trim();
+                            if (value) {
+                              addSkill(value);
+                              input.value = '';
+                            }
+                          }}
+                        >
+                          Add
+                        </Button>
                       </div>
-                    ))}
-                    {resumeData.projects.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No projects added yet.</p>
-                        <p className="text-sm">Click "Add Project" to get started.</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    </div>
 
-                {/* Awards & Achievements */}
-                <Card className="shadow-card">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      Awards & Achievements (Optional)
-                      <Button onClick={addAward} size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Award
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {resumeData.awards.map((award) => (
-                      <div key={award.id} className="p-4 border border-border rounded-lg space-y-3">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-medium">Award {resumeData.awards.indexOf(award) + 1}</h4>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removeAward(award.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-3">
-                          <Input
-                            placeholder="Award Name"
-                            value={award.name}
-                            onChange={(e) => updateAward(award.id, 'name', e.target.value)}
-                          />
-                          <Input
-                            placeholder="Issuing Organization"
-                            value={award.issuer}
-                            onChange={(e) => updateAward(award.id, 'issuer', e.target.value)}
-                          />
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-3">
-                          <Input
-                            placeholder="Year"
-                            value={award.year}
-                            onChange={(e) => updateAward(award.id, 'year', e.target.value)}
-                          />
-                          <Input
-                            placeholder="Description (Optional)"
-                            value={award.description || ''}
-                            onChange={(e) => updateAward(award.id, 'description', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    {resumeData.awards.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No awards added yet.</p>
-                        <p className="text-sm">Click "Add Award" to get started.</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Publications / Research */}
-                <Card className="shadow-card">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      Publications / Research (Optional)
-                      <Button onClick={addPublication} size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Publication
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {resumeData.publications.map((pub) => (
-                      <div key={pub.id} className="p-4 border border-border rounded-lg space-y-3">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-medium">Publication {resumeData.publications.indexOf(pub) + 1}</h4>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removePublication(pub.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                        <Input
-                          placeholder="Publication Title"
-                          value={pub.title}
-                          onChange={(e) => updatePublication(pub.id, 'title', e.target.value)}
-                        />
-                        <div className="grid md:grid-cols-2 gap-3">
-                          <Input
-                            placeholder="Journal/Conference"
-                            value={pub.journal || ''}
-                            onChange={(e) => updatePublication(pub.id, 'journal', e.target.value)}
-                          />
-                          <Input
-                            placeholder="Year"
-                            value={pub.year}
-                            onChange={(e) => updatePublication(pub.id, 'year', e.target.value)}
-                          />
-                        </div>
-                        <Input
-                          placeholder="Link (Optional)"
-                          value={pub.link || ''}
-                          onChange={(e) => updatePublication(pub.id, 'link', e.target.value)}
-                        />
-                      </div>
-                    ))}
-                    {resumeData.publications.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No publications added yet.</p>
-                        <p className="text-sm">Click "Add Publication" to get started.</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Keywords */}
-                <Card className="shadow-card">
-                  <CardHeader>
-                    <CardTitle>Keywords (Optional - for ATS optimization)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="Enter relevant keywords separated by commas for ATS optimization (e.g., JavaScript, React, Node.js, Agile, Scrum, Project Management)"
-                      value={resumeData.keywords.join(', ')}
-                      onChange={(e) => setResumeData(prev => ({
-                        ...prev,
-                        keywords: e.target.value.split(',').map(keyword => keyword.trim()).filter(Boolean)
-                      }))}
-                      rows={3}
-                    />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      These keywords help Applicant Tracking Systems (ATS) match your resume to job requirements.
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="layout" className="space-y-6">
-                <Card className="shadow-card">
-                  <CardHeader>
-                    <CardTitle>Section Order & Layout</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Drag sections up or down to reorder them in your resume. You can also enable/disable sections.
-                      </p>
+                    {/* Skills Display */}
+                    {resumeData.skills.length > 0 && (
                       <div className="space-y-2">
-                        {sectionOrder.map((section, index) => (
-                          <div key={section.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="checkbox"
-                                checked={section.enabled}
-                                onChange={() => toggleSection(section.id)}
-                                className="w-4 h-4"
-                              />
-                              <span className={`font-medium ${section.enabled ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
-                                {section.title}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => moveSectionUp(index)}
-                                disabled={index === 0}
-                                className="h-8 w-8 p-0"
+                        <Label>Your Skills ({resumeData.skills.length})</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {resumeData.skills.map((skill, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-1 px-3 py-1 bg-accent text-accent-foreground rounded-full text-sm"
+                            >
+                              <span>{skill}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeSkill(skill)}
+                                className="ml-1 hover:text-destructive transition-colors"
                               >
-                                <ChevronUp className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => moveSectionDown(index)}
-                                disabled={index === sectionOrder.length - 1}
-                                className="h-8 w-8 p-0"
-                              >
-                                <ChevronDown className="h-4 w-4" />
-                              </Button>
+                                <Trash2 className="w-3 h-3" />
+                              </button>
                             </div>
-                          </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quick Add Common Skills */}
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">Quick Add Common Skills</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {['JavaScript', 'Python', 'React', 'Node.js', 'SQL', 'Git', 'AWS', 'Docker', 'Project Management', 'Communication', 'Leadership', 'Problem Solving'].map((skill) => (
+                          <button
+                            key={skill}
+                            type="button"
+                            onClick={() => addSkill(skill)}
+                            disabled={resumeData.skills.includes(skill)}
+                            className={`px-2 py-1 text-xs rounded border transition-colors ${
+                              resumeData.skills.includes(skill)
+                                ? 'bg-green-100 text-green-700 border-green-200 cursor-not-allowed'
+                                : 'bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground'
+                            }`}
+                          >
+                            {skill}
+                          </button>
                         ))}
                       </div>
+                    </div>
+
+                    {/* Legacy Textarea for bulk input */}
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">Bulk Add Skills (comma-separated)</Label>
+                      <Textarea
+                        placeholder="Enter multiple skills separated by commas (e.g., JavaScript, Python, Project Management)"
+                        value={resumeData.skills.join(', ')}
+                        onChange={(e) => updateSkills(e.target.value)}
+                        rows={2}
+                        className="text-sm"
+                      />
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>
 
-            <div className="flex gap-4">
-              <Button onClick={generateAISuggestions} className="flex-1" variant="outline">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generate AI Suggestions
-                <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                  Coming Soon
-                </span>
-              </Button>
-              <Button 
-                onClick={exportResume} 
-                variant={hasSufficientData() ? "default" : "outline"}
-                disabled={!hasSufficientData() || isExportingPDF}
-                className="flex-1"
-              >
-                {isExportingPDF ? (
+            {/* Validation Status */}
+            {!isResumeComplete() ? (
+              <Card className="border-destructive/50 bg-destructive/5">
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-destructive/20 flex items-center justify-center">
+                      <span className="text-destructive text-xs font-bold">!</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-destructive mb-1">
+                        Resume Incomplete
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        Please complete all required fields before exporting your resume.
+                      </p>
+                      <div className="mt-2">
+                        <details className="text-xs">
+                          <summary className="cursor-pointer text-destructive hover:text-destructive/80">
+                            View missing fields ({validateResumeData().length})
+                          </summary>
+                          <ul className="mt-2 space-y-1 text-muted-foreground">
+                            {validateResumeData().slice(0, 5).map((error, index) => (
+                              <li key={index} className="flex items-center space-x-2">
+                                <span className="w-1 h-1 bg-destructive rounded-full"></span>
+                                <span>{error}</span>
+                              </li>
+                            ))}
+                            {validateResumeData().length > 5 && (
+                              <li className="text-xs text-muted-foreground">
+                                ... and {validateResumeData().length - 5} more
+                              </li>
+                            )}
+                          </ul>
+                        </details>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-green-500/50 bg-green-500/5">
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-green-700 mb-1">
+                        Resume Complete
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        All required fields are filled. You can now export your resume as PDF.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Export Button */}
+            <Button 
+              onClick={exportResume} 
+              disabled={isExportingPDF || !isResumeComplete()}
+              className={`w-full transition-all duration-300 ${
+                !isResumeComplete() 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : isExportingPDF 
+                    ? 'bg-blue-600 hover:bg-blue-700 animate-pulse' 
+                    : 'hover:scale-105 hover:shadow-lg'
+              }`}
+            >
+              {isExportingPDF ? (
+                <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
+                  <span className="animate-pulse">Processing PDF...</span>
+                </>
+              ) : isResumeComplete() ? (
+                <>
                   <Download className="w-4 h-4 mr-2" />
-                )}
-                {isExportingPDF 
-                  ? "Processing PDF..." 
-                  : hasSufficientData() 
-                    ? "Export as PDF" 
-                    : "Complete Resume to Export"
-                }
-              </Button>
-            </div>
-            {!hasSufficientData() && (
-              <div className="text-center">
-                <div className="mb-3">
-                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                    <span>Resume Completion</span>
-                    <span>{getCompletionProgress().percentage}%</span>
+                  Export as PDF
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Complete Resume to Export
+                </>
+              )}
+            </Button>
+
+            {/* Processing Status */}
+            {isExportingPDF && (
+              <Card className="border-blue-500/50 bg-blue-500/5 animate-in slide-in-from-top-2">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-blue-700 mb-1">
+                        Generating Your Resume PDF
+                      </h4>
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                          <span>Converting resume to PDF format...</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                          <span>Optimizing layout and formatting...</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                          <span>Preparing download...</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${getCompletionProgress().percentage}%` }}
-                    ></div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Success Celebration */}
+            {showSuccessCelebration && (
+              <Card className="border-green-500/50 bg-green-500/5 animate-in slide-in-from-top-2">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                        <Check className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-green-700 mb-1">
+                        🎉 Resume Successfully Exported!
+                      </h4>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Your professional resume has been downloaded as PDF.
+                      </p>
+                      <div className="flex items-center space-x-2 text-xs text-green-600">
+                        <span>✅</span>
+                        <span>PDF generated successfully</span>
+                        <span>•</span>
+                        <span>📁 Saved to downloads</span>
+                        <span>•</span>
+                        <span>📄 Ready to share</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowSuccessCelebration(false)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <span className="sr-only">Close</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Fill in all required fields to enable PDF export
-                </p>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Required: Name, Email, Phone, Experience/Education/Skills, and at least one additional section
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             )}
           </div>
 
@@ -1660,12 +1152,87 @@ export const ResumeBuilder = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="relative">
-                  <div ref={previewRef} className="bg-background border-2 border-dashed border-border rounded-lg p-8 min-h-[600px]">
-                    {renderTemplatePreview()}
-                  </div>
-                  <div className="absolute top-2 right-2 bg-primary/10 text-primary text-xs px-2 py-1 rounded">
-                    PDF will include "Dev Studio Sura" watermark
+                <div ref={previewRef} className="bg-background border-2 border-dashed border-border rounded-lg p-8 min-h-[600px]">
+                  <div className="space-y-6">
+                    {/* Header */}
+                    <div className="text-center">
+                      <h1 className="text-2xl font-bold text-foreground">
+                        {resumeData.personalInfo.name || "Your Name"}
+                      </h1>
+                      <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                        <div>{resumeData.personalInfo.email || "your.email@example.com"}</div>
+                        <div>{resumeData.personalInfo.phone || "+1 (555) 123-4567"}</div>
+                        <div>{resumeData.personalInfo.location || "Your Location"}</div>
+                      </div>
+                    </div>
+
+                    {/* Summary */}
+                    {resumeData.personalInfo.summary && (
+                      <div>
+                        <h2 className="text-lg font-semibold text-foreground mb-2">Professional Summary</h2>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {resumeData.personalInfo.summary}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Skills */}
+                    {resumeData.skills.length > 0 && (
+                      <div>
+                        <h2 className="text-lg font-semibold text-foreground mb-3">Core Competencies & Skills</h2>
+                        <div className="flex flex-wrap gap-2">
+                          {resumeData.skills.map((skill, index) => (
+                            <span 
+                              key={index}
+                              className="px-2 py-1 bg-accent text-accent-foreground text-sm rounded"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Experience */}
+                    {resumeData.experience.length > 0 && (
+                      <div>
+                        <h2 className="text-lg font-semibold text-foreground mb-3">Professional Experience</h2>
+                        <div className="space-y-4">
+                          {resumeData.experience.map((exp) => (
+                            <div key={exp.id} className="space-y-1">
+                              <div className="flex justify-between items-start">
+                                <h3 className="font-medium text-foreground">{exp.position || "Job Title"}</h3>
+                                <span className="text-sm text-muted-foreground">{exp.duration}</span>
+                              </div>
+                              <div className="text-sm text-muted-foreground">{exp.company || "Company Name"}</div>
+                              {exp.description && (
+                                <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                                  {exp.description}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Education */}
+                    {resumeData.education.length > 0 && (
+                      <div>
+                        <h2 className="text-lg font-semibold text-foreground mb-3">Education</h2>
+                        <div className="space-y-2">
+                          {resumeData.education.map((edu) => (
+                            <div key={edu.id} className="flex justify-between items-start">
+                              <div>
+                                <div className="font-medium text-foreground">{edu.degree || "Degree"}</div>
+                                <div className="text-sm text-muted-foreground">{edu.institution || "Institution"}</div>
+                              </div>
+                              <span className="text-sm text-muted-foreground">{edu.year}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

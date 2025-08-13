@@ -42,19 +42,19 @@ const teamMembers = [
     name: "Career Strategists",
     role: "Former HR directors and recruiting managers",
     experience: "15+ years experience",
-    gradient: "from-blue-500 to-purple-600"
+    gradient: "from-gray-800 to-black"
   },
   {
     name: "AI Engineers",
     role: "Machine learning experts",
     experience: "From leading tech companies",
-    gradient: "from-green-500 to-blue-600"
+    gradient: "from-gray-700 to-gray-900"
   },
   {
     name: "Design Team",
     role: "Award-winning designers",
     experience: "Creating beautiful, functional templates",
-    gradient: "from-purple-500 to-pink-600"
+    gradient: "from-gray-600 to-gray-800"
   }
 ];
 
@@ -64,13 +64,13 @@ export const AboutSection = () => {
       <div className="container mx-auto px-6 max-w-7xl">
         {/* Header Section */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-black/10 dark:bg-white/10 text-black dark:text-white text-sm font-medium mb-6">
             <CheckCircle className="w-4 h-4 mr-2" />
             Trusted by 50,000+ professionals
           </div>
           <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
             About
-            <span className="block text-primary bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            <span className="block text-black dark:text-white bg-gradient-to-r from-black to-gray-800 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
               ResumeAI
             </span>
           </h2>

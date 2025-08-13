@@ -3,45 +3,31 @@ import { Card, CardContent } from "@/components/ui/card";
 const templates = [
   {
     id: 1,
-    name: "Executive",
-    category: "Leadership",
-    description: "Perfect for C-level executives and senior management positions",
-    color: "from-slate-600 to-slate-800"
+    name: "Creative Resume Template",
+    category: "Design",
+    description: "A resume template as creative as your imagination",
+    color: "from-teal-600 to-blue-700"
   },
   {
     id: 2,
-    name: "Creative",
-    category: "Design",
-    description: "Stand out in creative fields with this modern, visual template",
-    color: "from-purple-600 to-purple-800"
+    name: "Professional Resume Template",
+    category: "General",
+    description: "Put your best foot forward with a professional resume template",
+    color: "from-blue-500 to-blue-600"
   },
   {
     id: 3,
-    name: "Technical",
-    category: "Engineering",
-    description: "Clean, structured layout ideal for developers and engineers",
-    color: "from-blue-600 to-blue-800"
+    name: "College Resume Template",
+    category: "Education",
+    description: "No experience? No problem!",
+    color: "from-blue-400 to-blue-500"
   },
   {
     id: 4,
-    name: "Academic",
-    category: "Education",
-    description: "Traditional format perfect for academic and research positions",
-    color: "from-green-600 to-green-800"
-  },
-  {
-    id: 5,
-    name: "Modern",
-    category: "General",
-    description: "Contemporary design suitable for most professional roles",
-    color: "from-indigo-600 to-indigo-800"
-  },
-  {
-    id: 6,
-    name: "Minimalist",
-    category: "General",
-    description: "Clean, simple design that focuses on your content",
-    color: "from-gray-600 to-gray-800"
+    name: "Two-Column Resume Template",
+    category: "Modern",
+    description: "Professional two-column layout with sidebar design",
+    color: "from-blue-800 to-teal-700"
   }
 ];
 
@@ -52,7 +38,7 @@ export const TemplatesSection = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             Professional
-            <span className="block text-primary">Resume Templates</span>
+            <span className="block text-black dark:text-white">Resume Templates</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Choose from our collection of ATS-friendly templates designed by career experts 
@@ -91,7 +77,7 @@ export const TemplatesSection = () => {
 
                 {/* Template Info */}
                 <div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-smooth">
+                  <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-black dark:group-hover:text-white transition-smooth">
                     {template.name}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">

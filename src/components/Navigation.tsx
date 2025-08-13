@@ -75,8 +75,9 @@ export const Navigation = () => {
             {[
               { label: "Features", id: "features" },
               { label: "Templates", id: "templates" },
-              { label: "Pricing", id: "pricing" },
-              { label: "About", id: "about" }
+              { label: "Samples", id: "samples" },
+              { label: "About", id: "about" },
+              { label: "Paid Services", id: "contact" }
             ].map((item) => (
               <button
                 key={item.id}
@@ -90,6 +91,16 @@ export const Navigation = () => {
 
           {/* Desktop CTA Section */}
           <div className="hidden lg:flex items-center space-x-4">
+            {/* Trial Indicator */}
+            <div className="flex items-center gap-2 bg-gradient-to-r from-black to-gray-800 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-md">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              Trial Active
+            </div>
+            {/* Paid Services Indicator */}
+            <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-md">
+              <span className="text-xs">💰</span>
+              Paid Services
+            </div>
             {isAuthenticated ? (
               <>
                 <DropdownMenu>
@@ -139,7 +150,7 @@ export const Navigation = () => {
                 </DropdownMenu>
                 <Button 
                   onClick={() => navigate("/builder")}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+                  className="bg-gradient-to-r from-black to-gray-800 hover:from-gray-900 hover:to-black text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
                 >
                   <Brain className="w-4 h-4 mr-2" />
                   Build Resume
@@ -148,7 +159,7 @@ export const Navigation = () => {
             ) : (
               <Button 
                 onClick={() => navigate("/builder")}
-                className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+                className="bg-gradient-to-r from-black to-gray-800 hover:from-gray-900 hover:to-black text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
               >
                 <Brain className="w-4 h-4 mr-2" />
                 Build Resume
@@ -177,11 +188,22 @@ export const Navigation = () => {
         {mobileMenuOpen && (
           <div className="lg:hidden">
             <div className="px-2 pt-2 pb-6 space-y-1 bg-background border-t border-border/50">
+              {/* Mobile Trial Indicator */}
+              <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-black to-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold mb-4">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                Trial Active - Premium Features Unlocked
+              </div>
+              {/* Mobile Paid Services Indicator */}
+              <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold mb-4">
+                <span className="text-sm">💰</span>
+                Paid Services Available
+              </div>
               {[
                 { label: "Features", id: "features" },
                 { label: "Templates", id: "templates" },
-                { label: "Pricing", id: "pricing" },
-                { label: "About", id: "about" }
+                { label: "Samples", id: "samples" },
+                { label: "About", id: "about" },
+                { label: "Paid Services", id: "contact" }
               ].map((item) => (
                 <button
                   key={item.id}

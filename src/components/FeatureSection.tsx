@@ -41,7 +41,7 @@ export const FeatureSection = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             Everything You Need to
-            <span className="block text-primary"> Succeed</span>
+            <span className="block text-black dark:text-white"> Succeed</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Our platform combines cutting-edge AI technology with proven resume strategies
@@ -56,8 +56,8 @@ export const FeatureSection = () => {
               className="bg-gradient-card shadow-card hover:shadow-elegant transition-spring hover:scale-105 border-border/50"
             >
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-hero rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
-                  <feature.icon className="w-8 h-8 text-primary-foreground" />
+                <div className="w-16 h-16 bg-gradient-to-br from-black to-gray-800 dark:from-white dark:to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
+                  <feature.icon className="w-8 h-8 text-white dark:text-black" />
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-4">
                   {feature.title}

@@ -8,21 +8,21 @@ export const HeroSection = () => {
   const [showEmailModal, setShowEmailModal] = useState(false);
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center overflow-hidden">
       {/* Professional Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.1),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.1),transparent_50%)]" />
-      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.05),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.03),transparent_50%)]" />
+      <div className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/3 rounded-full blur-3xl" />
       
       {/* Main Content Container */}
       <div className="container mx-auto px-6 relative z-10">
         <div className="text-center max-w-6xl mx-auto">
           
           {/* Professional Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-6 py-3 mb-12 shadow-lg">
-            <Sparkles className="w-4 h-4 text-blue-400" />
-            <span className="text-sm font-semibold text-white/90 tracking-wide">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3 mb-12 shadow-lg">
+            <Sparkles className="w-4 h-4 text-white" />
+            <span className="text-sm font-semibold text-white tracking-wide">
               AI-Powered Professional Resume Builder
             </span>
           </div>
@@ -31,11 +31,27 @@ export const HeroSection = () => {
           <div className="mb-10">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight">
               Create Your
-              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent">
                 Professional Resume
               </span>
               in Minutes
             </h1>
+          </div>
+
+          {/* Paid Service Banner */}
+          <div className="mb-8">
+            <a 
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=officialsurag@gmail.com&su=Paid%20Resume%20Service%20Inquiry&body=Hi%2C%20I%20am%20interested%20in%20your%20paid%20resume%20service.%20Please%20provide%20more%20details%20about%20pricing%20and%20features"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block"
+            >
+              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-full shadow-lg border-2 border-amber-400/30 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                <span className="text-2xl font-bold">$</span>
+                <span className="font-semibold text-lg">Paid Resume or CV Available Now!</span>
+                <span className="text-sm opacity-90">Click for more information</span>
+              </div>
+            </a>
           </div>
 
           {/* Professional Subheading */}
@@ -51,49 +67,50 @@ export const HeroSection = () => {
             <Button 
               size="lg" 
               onClick={() => navigate("/builder")}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl text-lg px-10 py-6 rounded-xl font-semibold transition-all duration-300 hover:shadow-2xl hover:scale-105"
+              className="bg-gradient-to-r from-white to-gray-200 hover:from-gray-100 hover:to-gray-300 text-black shadow-xl text-lg px-10 py-6 rounded-xl font-semibold transition-all duration-300 hover:shadow-2xl hover:scale-105"
             >
               Start Building Now
               <ArrowRight className="ml-3 w-5 h-5" />
             </Button>
-            <a 
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=officialsurag@gmail.com&su=Professional%20Resume%20Service%20Inquiry&body=Hello%2C%20I%20am%20interested%20in%20your%20professional%20resume%20services.%20Please%20provide%20information%20about%20pricing%2C%20features%2C%20and%20turnaround%20times.%20Thank%20you."
-              target="_blank"
-              rel="noopener noreferrer"
+            <Button 
+              size="lg" 
+              variant="outline"
+              asChild
+              className="border-2 border-amber-400 text-amber-400 hover:bg-amber-400 hover:text-white shadow-xl text-lg px-8 py-6 rounded-xl font-semibold transition-all duration-300 hover:shadow-2xl hover:scale-105"
             >
-              <Button 
-                size="lg"
-                variant="outline"
-                className="border-2 border-white/20 bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 hover:border-white/30 text-lg px-10 py-6 rounded-xl font-semibold transition-all duration-300"
+              <a 
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=officialsurag@gmail.com&su=Paid%20Resume%20Service%20Inquiry&body=Hi%2C%20I%20am%20interested%20in%20your%20paid%20resume%20service.%20Please%20provide%20more%20details%20about%20pricing%20and%20features"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <Mail className="mr-3 w-5 h-5" />
-                Paid Resume Service
-              </Button>
-            </a>
+                Contact for Paid Services
+              </a>
+            </Button>
           </div>
 
           {/* Professional Feature Highlights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="flex flex-col items-center gap-4 p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
-                <Brain className="w-6 h-6 text-blue-400" />
+            <div className="flex flex-col items-center gap-4 p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <Brain className="w-6 h-6 text-white" />
               </div>
               <h3 className="font-semibold text-white text-lg">AI-Powered Content</h3>
-              <p className="text-white/70 text-sm text-center">Intelligent suggestions to enhance your resume content</p>
+              <p className="text-white/80 text-sm text-center">Intelligent suggestions to enhance your resume content</p>
             </div>
-            <div className="flex flex-col items-center gap-4 p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
-                <FileText className="w-6 h-6 text-purple-400" />
+            <div className="flex flex-col items-center gap-4 p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <FileText className="w-6 h-6 text-white" />
               </div>
               <h3 className="font-semibold text-white text-lg">Professional Templates</h3>
-              <p className="text-white/70 text-sm text-center">Industry-standard designs that impress recruiters</p>
+              <p className="text-white/80 text-sm text-center">Industry-standard designs that impress recruiters</p>
             </div>
-            <div className="flex flex-col items-center gap-4 p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
-              <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-400" />
+            <div className="flex flex-col items-center gap-4 p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <h3 className="font-semibold text-white text-lg">ATS Optimized</h3>
-              <p className="text-white/70 text-sm text-center">Pass through applicant tracking systems with ease</p>
+              <p className="text-white/80 text-sm text-center">Pass through applicant tracking systems with ease</p>
             </div>
           </div>
 

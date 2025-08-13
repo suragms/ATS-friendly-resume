@@ -230,3 +230,438 @@
   color: #000;
   padding: 1px 4px;
 }
+
+/* Creative Resume Template */
+.resume-preview.creative-resume {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #2d3748;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.resume-preview.creative-resume h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2b6cb0;
+  margin-bottom: 16px;
+  text-align: center;
+  border-bottom: 3px solid #4299e1;
+  padding-bottom: 8px;
+}
+
+.resume-preview.creative-resume h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  border-left: 4px solid #4299e1;
+  padding-left: 12px;
+}
+
+.resume-preview.creative-resume h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2b6cb0;
+  margin-bottom: 8px;
+}
+
+.resume-preview.creative-resume p,
+.resume-preview.creative-resume div {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #4a5568;
+}
+
+.resume-preview.creative-resume .header-creative-resume {
+  text-align: center;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.resume-preview.creative-resume .header-creative-resume h1 {
+  color: white;
+  border-bottom: none;
+  margin-bottom: 12px;
+}
+
+.resume-preview.creative-resume .header-creative-resume div {
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+/* Professional Resume Template */
+.resume-preview.professional-resume {
+  font-family: 'Georgia', serif;
+  line-height: 1.5;
+  color: #2d3748;
+  background: #ffffff;
+  padding: 24px;
+  border: 2px solid #e2e8f0;
+  border-radius: 4px;
+}
+
+.resume-preview.professional-resume h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 16px;
+  text-align: center;
+  border-bottom: 2px solid #4a5568;
+  padding-bottom: 12px;
+}
+
+.resume-preview.professional-resume h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+}
+
+.resume-preview.professional-resume h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
+
+.resume-preview.professional-resume p,
+.resume-preview.professional-resume div {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #4a5568;
+}
+
+.resume-preview.professional-resume .header-professional-resume {
+  text-align: center;
+  margin-bottom: 28px;
+  background: #f7fafc;
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.resume-preview.professional-resume .header-professional-resume h1 {
+  color: #1a202c;
+  border-bottom: none;
+  margin-bottom: 12px;
+}
+
+.resume-preview.professional-resume .header-professional-resume div {
+  color: #4a5568;
+  font-size: 14px;
+}
+
+/* College Resume Template */
+.resume-preview.college-resume {
+  font-family: 'Arial', sans-serif;
+  line-height: 1.4;
+  color: #2d3748;
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 6px;
+}
+
+.resume-preview.college-resume h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2b6cb0;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.resume-preview.college-resume h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-top: 18px;
+  margin-bottom: 10px;
+  background: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.resume-preview.college-resume h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b6cb0;
+  margin-bottom: 6px;
+}
+
+.resume-preview.college-resume p,
+.resume-preview.college-resume div {
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #4a5568;
+}
+
+.resume-preview.college-resume .header-college-resume {
+  text-align: center;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px;
+  border-radius: 6px;
+}
+
+.resume-preview.college-resume .header-college-resume h1 {
+  color: white;
+  margin-bottom: 8px;
+}
+
+.resume-preview.college-resume .header-college-resume div {
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+/* Template-specific section styling */
+.resume-preview.creative-resume .experience-creative-resume,
+.resume-preview.creative-resume .education-creative-resume,
+.resume-preview.creative-resume .skills-creative-resume,
+.resume-preview.creative-resume .certifications-creative-resume,
+.resume-preview.creative-resume .projects-creative-resume,
+.resume-preview.creative-resume .awards-creative-resume,
+.resume-preview.creative-resume .publications-creative-resume {
+  margin-bottom: 16px;
+}
+
+.resume-preview.professional-resume .experience-professional-resume,
+.resume-preview.professional-resume .education-professional-resume,
+.resume-preview.professional-resume .skills-professional-resume,
+.resume-preview.professional-resume .certifications-professional-resume,
+.resume-preview.professional-resume .projects-professional-resume,
+.resume-preview.professional-resume .awards-professional-resume,
+.resume-preview.professional-resume .publications-professional-resume {
+  margin-bottom: 18px;
+}
+
+.resume-preview.college-resume .experience-college-resume,
+.resume-preview.college-resume .education-college-resume,
+.resume-preview.college-resume .skills-college-resume,
+.resume-preview.college-resume .certifications-college-resume,
+.resume-preview.college-resume .projects-college-resume,
+.resume-preview.college-resume .awards-college-resume,
+.resume-preview.college-resume .publications-college-resume {
+  margin-bottom: 14px;
+}
+
+/* Skills styling for new templates */
+.resume-preview.creative-resume .skills-creative-resume span {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  color: white;
+  padding: 6px 12px;
+  margin: 4px;
+  border-radius: 20px;
+  font-size: 12px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.resume-preview.professional-resume .skills-professional-resume span {
+  background: #4a5568;
+  color: white;
+  padding: 4px 10px;
+  margin: 3px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.resume-preview.college-resume .skills-college-resume span {
+  background: #667eea;
+  color: white;
+  padding: 4px 8px;
+  margin: 2px;
+  border-radius: 12px;
+  font-size: 11px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+/* Two-Column Resume Template */
+.resume-preview.two-column-resume {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+  color: #2d3748;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0;
+  min-height: 100vh;
+}
+
+.resume-preview.two-column-resume .header-two-column-resume {
+  background: linear-gradient(135deg, #1e40af 0%, #0f766e 100%);
+  color: white;
+  padding: 30px 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.resume-preview.two-column-resume .header-two-column-resume h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.resume-preview.two-column-resume .header-two-column-resume h2 {
+  font-size: 18px;
+  font-weight: 400;
+  color: #e2e8f0;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.resume-preview.two-column-resume .header-two-column-resume .contact-info {
+  margin-top: 20px;
+}
+
+.resume-preview.two-column-resume .header-two-column-resume .contact-info div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.resume-preview.two-column-resume .header-two-column-resume .contact-info .icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+.resume-preview.two-column-resume .main-content {
+  padding: 30px;
+  background: white;
+}
+
+.resume-preview.two-column-resume h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e40af;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #1e40af;
+  padding-bottom: 8px;
+}
+
+.resume-preview.two-column-resume h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 6px;
+}
+
+.resume-preview.two-column-resume h4 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 4px;
+}
+
+.resume-preview.two-column-resume p,
+.resume-preview.two-column-resume div {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #4a5568;
+}
+
+.resume-preview.two-column-resume .summary-two-column-resume {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border-left: 4px solid #1e40af;
+}
+
+.resume-preview.two-column-resume .experience-two-column-resume,
+.resume-preview.two-column-resume .education-two-column-resume,
+.resume-preview.two-column-resume .skills-two-column-resume,
+.resume-preview.two-column-resume .certifications-two-column-resume,
+.resume-preview.two-column-resume .projects-two-column-resume,
+.resume-preview.two-column-resume .awards-two-column-resume,
+.resume-preview.two-column-resume .publications-two-column-resume {
+  margin-bottom: 20px;
+}
+
+.resume-preview.two-column-resume .experience-two-column-resume .job-item,
+.resume-preview.two-column-resume .education-two-column-resume .education-item {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.resume-preview.two-column-resume .experience-two-column-resume .job-item:last-child,
+.resume-preview.two-column-resume .education-two-column-resume .education-item:last-child {
+  border-bottom: none;
+}
+
+.resume-preview.two-column-resume .job-title {
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 4px;
+}
+
+.resume-preview.two-column-resume .company-name {
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 4px;
+}
+
+.resume-preview.two-column-resume .job-duration {
+  font-size: 12px;
+  color: #718096;
+  margin-bottom: 8px;
+}
+
+.resume-preview.two-column-resume .job-description {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #4a5568;
+}
+
+.resume-preview.two-column-resume .skills-two-column-resume span {
+  background: #1e40af;
+  color: white;
+  padding: 6px 12px;
+  margin: 4px;
+  border-radius: 20px;
+  font-size: 12px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.resume-preview.two-column-resume .certifications-two-column-resume .cert-item,
+.resume-preview.two-column-resume .awards-two-column-resume .award-item {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 4px;
+  border-left: 3px solid #1e40af;
+}
+
+.resume-preview.two-column-resume .certifications-two-column-resume .cert-name,
+.resume-preview.two-column-resume .awards-two-column-resume .award-name {
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 2px;
+}
+
+.resume-preview.two-column-resume .certifications-two-column-resume .cert-issuer,
+.resume-preview.two-column-resume .awards-two-column-resume .award-issuer {
+  font-size: 12px;
+  color: #718096;
+}

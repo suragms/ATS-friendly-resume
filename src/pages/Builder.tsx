@@ -1,5 +1,6 @@
 import { Navigation } from "@/components/Navigation";
 import { ResumeBuilder } from "@/components/ResumeBuilder";
+import { Footer } from "@/components/Footer";
 
 const Builder = () => {
   return (
@@ -8,6 +9,7 @@ const Builder = () => {
       <div className="pt-20">
         <ResumeBuilder />
       </div>
+      <Footer />
     </div>
   );
 };
